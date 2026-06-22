@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>moonlit — stories, scribbled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEE9DB;          /* warm off-white journal paper */
+    --grid:transparent;       /* grid removed for review — set to rgba(43,40,120,.10) to restore */
+    --ink:#181622;
+    --ink-soft:#4a4654;
+    --pink:#E5147B;           /* hot magenta marker */
+    --pink-deep:#B30E5F;
+    --blue:#2222C9;           /* electric cobalt marker */
+    --blue-deep:#16168f;
+    --tape:rgba(244,224,120,.55);
+    --card:#FBF8EE;
+    --marker:"Caveat",cursive;
+    --hand:"Gloria Hallelujah",cursive;
+    --sticker:"Anton",sans-serif;
+    --type:"Courier Prime",monospace;
+    --grotesk:"Space Grotesk",sans-serif;
+    --ease:cubic-bezier(.16,.84,.44,1);
+  }
+  [data-theme="night"]{
+    --paper:#1C1A22;          /* warm charcoal — NOT pure black (avoids halation/vibration) */
+    --grid:transparent;
+    --ink:#E8E3D6;            /* warm off-white — NOT pure white (less glare) */
+    --ink-soft:#A8A2B0;
+    --pink:#EF85AE;           /* desaturated rose (was neon #FF3D9A — it buzzed) */
+    --pink-deep:#F0A0BF;
+    --blue:#A6ABF0;           /* lightened periwinkle (was saturated #6A6AFF — it vibrated) */
+    --blue-deep:#BBBFF6;
+    --tape:rgba(244,224,120,.18);
+    --card:#272430;           /* elevated surface — lighter than bg, per Material */
+  }
+  /* dark mode: drop the colored offset shadow on titles (saturated adjacency vibrates) */
+  [data-theme="night"] .brand,
+  [data-theme="night"] .hero h1,
+  [data-theme="night"] .page h1,
+  [data-theme="night"] .sub h2,
+  [data-theme="night"] .spread blockquote{text-shadow:2px 2px 0 rgba(0,0,0,.45)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:26px 26px;
+    color:var(--ink);
+    font-family:var(--type);
+    line-height:1.6;
+    overflow-x:hidden;
+    transition:background-color .6s var(--ease),color .6s var(--ease);
+  }
+  ::selection{background:var(--pink);color:#fff}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative}
+
+  /* ── shared collage bits ── */
+  .sticker{font-family:var(--sticker);background:#000;color:var(--pink);
+    -webkit-text-stroke:1px var(--blue);padding:3px 12px 5px;display:inline-block;
+    letter-spacing:.04em;line-height:1;text-transform:uppercase;transform:rotate(-2.5deg);
+    box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+  .tape{position:absolute;width:96px;height:26px;background:var(--tape);
+    box-shadow:0 1px 4px rgba(0,0,0,.12);backdrop-filter:blur(1px);z-index:3}
+  .doodle{position:absolute;pointer-events:none;z-index:2;overflow:visible;filter:url(#rough)}
+  .thumb svg,.ncard .n,.spread svg{filter:url(#rough)}
+  .marker-h{font-family:var(--marker);font-weight:700;line-height:.95;letter-spacing:.01em}
+  /* hand-drawn scribble underline */
+  .scribble{display:block;width:100%;max-width:340px;height:16px;margin-top:-2px;filter:url(#rough)}
+  .scribble path{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round}
+  /* duotone cut-out "photo" placeholder */
+  .cutout{position:absolute;background:linear-gradient(135deg,var(--blue) 0%,var(--blue) 38%,var(--pink) 62%,var(--pink) 100%);
+    mix-blend-mode:multiply;border:6px solid var(--card);box-shadow:4px 8px 22px rgba(0,0,0,.28);z-index:1}
+  [data-theme="night"] .cutout{mix-blend-mode:screen;opacity:.85}
+  .cutout::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 60% 35%,rgba(0,0,0,.0) 30%,rgba(0,0,0,.35) 100%)}
+  /* extra scattered marks */
+  .scatter{position:absolute;pointer-events:none;z-index:2;filter:url(#rough)}
+
+  #progress{position:fixed;top:0;left:0;height:4px;width:0;background:var(--pink);z-index:90;
+    box-shadow:0 0 0 1px var(--blue) inset}
+  #trail{position:fixed;inset:0;pointer-events:none;z-index:120}
+
+  /* ── night ambience: fireflies + owl ── */
+  .nightfx{position:fixed;inset:0;pointer-events:none;z-index:70;opacity:0;transition:opacity 1s var(--ease)}
+  .owl-perch{position:fixed;left:6px;bottom:0;z-index:70;pointer-events:none;
+    opacity:0;transform:translateY(22px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+  [data-theme="night"] .nightfx{opacity:1}
+  [data-theme="night"] .owl-perch{opacity:1;transform:none}
+  .firefly{position:absolute;animation:fly var(--dur,16s) ease-in-out infinite}
+  .firefly i{display:block;width:100%;height:100%;border-radius:50%;background:#FBE08A;
+    box-shadow:0 0 8px 2px rgba(251,224,138,.75);transition:transform .55s ease-out;will-change:transform;
+    animation:twinkle var(--tw,3s) ease-in-out infinite}
+  @keyframes fly{
+    0%{transform:translate(0,0)}
+    25%{transform:translate(var(--dx),var(--dy))}
+    50%{transform:translate(calc(var(--dx)*-.5),calc(var(--dy)*.7))}
+    75%{transform:translate(calc(var(--dx)*.6),calc(var(--dy)*-.6))}
+    100%{transform:translate(0,0)}}
+  @keyframes twinkle{0%,100%{opacity:.15}50%{opacity:1}}
+  .owl-body{transform-box:fill-box;transform-origin:78px 145px;animation:sway 6s ease-in-out infinite}
+  @keyframes sway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+  .owl-lid{transform-box:fill-box;transform-origin:50% 0%;animation:owlblink 5.4s infinite}
+  @keyframes owlblink{0%,88%,100%{transform:scaleY(0)}92%,95%{transform:scaleY(1)}}
+  @media(prefers-reduced-motion:reduce){.firefly,.owl-body,.owl-lid{animation:none}}
+  @media(max-width:680px){.owl-perch{width:110px}.owl-perch svg{width:110px}}
+  @media(max-width:420px){.owl-perch{display:none}}
+
+  /* eye follows cursor (smoothly) */
+  .eye-ball{transition:transform .12s ease-out}
+
+  /* owl reactions */
+  .owl-hoo{position:absolute;left:120px;top:30px;font-family:var(--marker);font-weight:700;
+    font-size:1.6rem;color:#FBE08A;opacity:0;text-shadow:0 0 8px rgba(251,224,138,.6);pointer-events:none}
+  .owl-perch.startle .owl-body{animation:startle .55s ease}
+  .owl-perch.startle .owl-hoo{animation:hoo 1s ease}
+  @keyframes startle{0%{transform:scale(1)}18%{transform:scale(1.14) rotate(-6deg)}
+    40%{transform:scale(1.08) rotate(6deg)}62%{transform:rotate(-4deg)}82%{transform:rotate(3deg)}100%{transform:none}}
+  @keyframes hoo{0%{opacity:0;transform:translateY(4px) scale(.6)}30%{opacity:1}
+    100%{opacity:0;transform:translateY(-34px) scale(1.15)}}
+  .owl-perch.flyaway{animation:flyaway 3.4s ease}
+  @keyframes flyaway{0%{transform:none;opacity:1}
+    28%{transform:translate(90px,-180px) rotate(16deg);opacity:0}
+    56%{transform:translate(-10px,46px) rotate(-4deg);opacity:0}
+    78%{transform:translateY(-8px);opacity:1}100%{transform:none;opacity:1}}
+
+  /* ── MASTHEAD ── */
+  header.mast{position:sticky;top:0;z-index:80;
+    background:color-mix(in srgb,var(--paper) 85%,transparent);
+    backdrop-filter:blur(6px);border-bottom:2px dashed var(--blue)}
+  .mast-inner{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .brand{font-family:var(--marker);font-weight:700;font-size:2.1rem;color:var(--pink);
+    cursor:pointer;line-height:1;transform:rotate(-2deg);text-shadow:1.5px 1.5px 0 var(--blue)}
+  nav ul{display:flex;gap:10px;list-style:none;align-items:center}
+  nav a{font-family:var(--grotesk);font-size:.72rem;font-weight:500;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink);text-decoration:none;padding:5px 11px;
+    border:1.5px solid var(--ink);background:var(--card);transform:rotate(-1.2deg);
+    transition:.2s var(--ease)}
+  nav a:nth-child(even){transform:rotate(1.4deg)}
+  nav a:hover{background:var(--pink);color:#fff;border-color:var(--pink);transform:rotate(0) scale(1.05)}
+  .theme-btn{font-family:var(--grotesk);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;
+    background:var(--blue);color:#fff;border:none;padding:8px 12px;cursor:pointer;
+    transform:rotate(2deg);box-shadow:2px 2px 0 var(--ink)}
+  .theme-btn:hover{background:var(--pink)}
+  @media(max-width:820px){nav ul li:nth-child(n+3){display:none}}
+
+  /* ── HERO ── */
+  .hero{padding:64px 0 60px;position:relative;min-height:560px}
+  .hero .nowplaying{position:absolute;top:40px;right:8px;transform:rotate(3deg);z-index:5}
+  .hero .eyebrow{font-family:var(--hand);font-size:1.05rem;color:var(--blue);margin-bottom:6px;transform:rotate(-1deg);display:inline-block}
+  .hero h1{font-family:var(--marker);font-weight:700;color:var(--pink);
+    font-size:clamp(3.2rem,9vw,7rem);line-height:.86;max-width:13ch;
+    text-shadow:2px 2px 0 var(--blue);margin:6px 0 0}
+  .hero .sub{font-family:var(--hand);font-size:clamp(1.1rem,2.4vw,1.5rem);color:var(--ink);
+    max-width:30ch;margin-top:28px;line-height:1.4;transform:rotate(-.6deg)}
+  .hero .meta{margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{font-family:var(--grotesk);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+    padding:5px 12px;border:1.5px solid var(--ink);transform:rotate(-1.5deg)}
+  .pill.ink{background:var(--ink);color:var(--paper)}
+  .read-cta{margin-top:36px;font-family:var(--sticker);font-size:1.15rem;text-transform:uppercase;
+    letter-spacing:.04em;background:var(--pink);color:#fff;border:none;padding:16px 30px;cursor:pointer;
+    transform:rotate(-1.6deg);box-shadow:4px 4px 0 var(--blue);transition:.18s var(--ease)}
+  .read-cta:hover{transform:rotate(-1.6deg) translate(-2px,-2px);box-shadow:6px 6px 0 var(--blue)}
+  .read-cta:active{transform:rotate(-1.6deg) translate(2px,2px);box-shadow:1px 1px 0 var(--blue)}
+
+  /* ── music player (tactile) ── */
+  .np{width:252px;background:linear-gradient(165deg,#23202f,#131220);color:#eee;padding:16px;
+    border-radius:16px;border:1px solid rgba(255,255,255,.07);
+    box-shadow:4px 10px 28px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06)}
+  .np .row{display:flex;gap:12px;align-items:center}
+  .np .art{width:48px;height:48px;border-radius:9px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--pink),var(--blue));box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .np .eq{display:flex;gap:3px;align-items:flex-end;height:22px}
+  .np .eq i{width:3.5px;height:6px;background:#fff;border-radius:2px;animation:eq .85s ease-in-out infinite}
+  .np .eq i:nth-child(2){animation-delay:.18s}
+  .np .eq i:nth-child(3){animation-delay:.42s}
+  .np .eq i:nth-child(4){animation-delay:.1s}
+  @keyframes eq{0%,100%{height:5px}50%{height:20px}}
+  .np .t{font-family:var(--grotesk);font-size:.84rem;font-weight:700;line-height:1.12}
+  .np .a{font-family:var(--grotesk);font-size:.72rem;color:#9b97a8;margin-top:2px}
+  .np .lyric{font-family:var(--grotesk);font-size:.78rem;line-height:1.5;margin-top:13px;color:#cbc6d6;font-style:italic}
+  .np .time{display:flex;align-items:center;gap:9px;margin-top:14px}
+  .np .time span{font-family:var(--grotesk);font-size:.6rem;color:#8a869a;flex:none}
+  .np .bar{flex:1;height:4px;background:#37344a;border-radius:3px;position:relative}
+  .np .bar::before{content:"";position:absolute;left:0;top:0;height:100%;width:46%;
+    background:linear-gradient(90deg,var(--pink),var(--blue));border-radius:3px}
+  .np .bar::after{content:"";position:absolute;left:46%;top:50%;width:10px;height:10px;background:#fff;
+    border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 5px rgba(0,0,0,.5)}
+  .np .ctrls{display:flex;align-items:center;gap:14px;margin-top:14px}
+  .np .ctrls button{background:none;border:none;color:#d6d2e0;font-size:.95rem;cursor:pointer;padding:0;line-height:1}
+  .np .ctrls button:hover{color:#fff}
+  .np .ctrls .play{width:36px;height:36px;border-radius:50%;background:#fff;color:#14131d;
+    display:grid;place-items:center;font-size:.78rem}
+  .np .ctrls .play:hover{background:var(--pink);color:#fff}
+  .np .ctrls .sp{margin-left:auto;font-family:var(--grotesk);font-size:.56rem;letter-spacing:.14em;
+    text-transform:uppercase;color:#1db954}
+
+  /* blinking eye + doodle anims */
+  .lid{transform-box:fill-box;transform-origin:50% 0%;animation:blink 4.8s infinite ease-in-out}
+  @keyframes blink{0%,93%,100%{transform:scaleY(0)}96.5%{transform:scaleY(1.02)}}
+
+  /* ── SECTION HEAD ── */
+  .sec-head{margin:30px 0 38px;display:flex;align-items:center;gap:16px}
+  .sec-head h2{font-family:var(--sticker);font-size:clamp(1.6rem,4vw,2.4rem);text-transform:uppercase;
+    color:var(--ink);transform:rotate(-1.5deg)}
+  .sec-head .line{flex:1;height:3px;background:repeating-linear-gradient(90deg,var(--blue) 0 10px,transparent 10px 18px)}
+
+  /* ── STORY WALL ── */
+  .wall{display:grid;grid-template-columns:repeat(3,1fr);gap:42px 34px;padding:10px 0 30px}
+  .pin{background:var(--card);padding:16px 16px 22px;position:relative;cursor:pointer;
+    box-shadow:3px 7px 20px rgba(0,0,0,.16);border:1px solid rgba(0,0,0,.06);
+    transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+  .pin:nth-child(3n+1){transform:rotate(-2.8deg)}
+  .pin:nth-child(3n+2){transform:rotate(2.2deg)}
+  .pin:nth-child(3n){transform:rotate(-1.4deg)}
+  .pin::after{content:"";position:absolute;width:60px;height:20px;background:var(--tape);
+    right:-14px;bottom:34px;transform:rotate(38deg);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .pin:hover{transform:rotate(0) translateY(-6px) scale(1.02);box-shadow:6px 14px 30px rgba(0,0,0,.24);z-index:6}
+  .pin .tapebit{position:absolute;top:-12px;left:50%;margin-left:-48px;width:96px;height:24px;
+    background:var(--tape);transform:rotate(-3deg)}
+  .pin .thumb{height:140px;background:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:18px 18px;display:grid;place-items:center;position:relative;overflow:hidden}
+  .pin h3{font-family:var(--marker);font-weight:700;font-size:1.7rem;line-height:.98;margin:16px 4px 8px;color:var(--ink);transition:color .2s}
+  .pin:hover h3{color:var(--pink)}
+  .pin .ex{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);margin:0 4px;line-height:1.5}
+  .pin .foot{display:flex;justify-content:space-between;align-items:center;margin:16px 4px 0}
+  .pin .rt{font-family:var(--hand);font-size:1rem;color:var(--blue)}
+  @media(max-width:880px){.wall{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.wall{grid-template-columns:1fr}}
+
+  /* ── QUOTE SPREAD ── */
+  .spread{padding:120px 0;text-align:center;position:relative}
+  .spread blockquote{font-family:var(--marker);font-weight:700;color:var(--blue);
+    font-size:clamp(2.4rem,6.5vw,4.6rem);line-height:1.02;max-width:16ch;margin:0 auto;
+    text-shadow:2px 2px 0 var(--pink)}
+  .spread .by{font-family:var(--hand);font-size:1rem;color:var(--ink-soft);margin-top:26px}
+
+  /* ── SUBSCRIBE (torn page) ── */
+  .sub{position:relative;background:var(--card);margin:30px auto 0;max-width:760px;padding:60px 40px;
+    box-shadow:0 12px 40px rgba(0,0,0,.18);transform:rotate(-.6deg)}
+  .sub::before,.sub::after{content:"";position:absolute;left:0;right:0;height:14px;
+    background:radial-gradient(circle at 8px -2px,transparent 8px,var(--card) 9px) repeat-x;background-size:18px 14px}
+  .sub::before{top:-13px;transform:scaleY(-1)}
+  .sub::after{bottom:-13px}
+  .sub h2{font-family:var(--marker);font-weight:700;font-size:clamp(2rem,5vw,3.2rem);color:var(--pink);
+    line-height:.95;text-shadow:1.5px 1.5px 0 var(--blue)}
+  .sub p{font-family:var(--hand);font-size:1.1rem;margin:14px 0 26px;color:var(--ink);max-width:40ch}
+  .sub form{display:flex;gap:10px;flex-wrap:wrap}
+  .sub input{font-family:var(--type);font-size:.95rem;padding:13px 16px;border:2px solid var(--ink);
+    background:transparent;color:var(--ink);width:280px;max-width:70vw}
+  .sub button{font-family:var(--sticker);text-transform:uppercase;letter-spacing:.04em;font-size:1rem;
+    background:var(--blue);color:#fff;border:none;padding:13px 26px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+  .sub button:hover{background:var(--pink)}
+
+  footer{padding:70px 0 50px;text-align:center}
+  footer .brand{display:inline-block;font-size:1.8rem}
+  footer p{font-family:var(--hand);font-size:.95rem;color:var(--ink-soft);margin-top:10px}
+
+  /* ── READING VIEW ── */
+  #reader{position:fixed;inset:0;z-index:95;background:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:26px 26px;overflow-y:auto;opacity:0;visibility:hidden;transition:opacity .45s var(--ease)}
+  #reader.open{opacity:1;visibility:visible}
+  .rbar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--paper) 85%,transparent);
+    backdrop-filter:blur(6px);border-bottom:2px dashed var(--pink)}
+  .rbar-in{display:flex;align-items:center;justify-content:space-between;height:60px;max-width:820px;margin:0 auto;padding:0 24px}
+  .back-btn{font-family:var(--grotesk);font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;
+    background:var(--ink);color:var(--paper);border:none;padding:8px 14px;cursor:pointer;transform:rotate(-1.5deg)}
+  .back-btn:hover{background:var(--pink)}
+  .rprog{position:absolute;bottom:-2px;left:0;height:3px;background:var(--blue);width:0}
+  .page{max-width:720px;margin:0 auto;padding:60px 28px 30px;position:relative}
+  .page .sticker{font-size:1rem;margin-bottom:18px}
+  .page h1{font-family:var(--marker);font-weight:700;color:var(--pink);font-size:clamp(2.6rem,7vw,4.6rem);
+    line-height:.88;text-shadow:2px 2px 0 var(--blue);margin:10px 0 18px}
+  .page .byl{font-family:var(--hand);font-size:1rem;color:var(--blue);margin-bottom:8px}
+  .page .song{margin:26px 0 6px}
+  /* notebook lined body */
+  .body{margin-top:30px;font-family:var(--type);font-size:1.06rem;line-height:1.85;color:var(--ink)}
+  .body p{margin-bottom:24px;max-width:62ch}
+  .body p:first-of-type::first-letter{font-family:var(--marker);font-weight:700;float:left;
+    font-size:4.6rem;line-height:.7;padding:10px 12px 0 0;color:var(--pink);text-shadow:1.5px 1.5px 0 var(--blue)}
+  .body em{font-family:var(--marker);font-style:normal;font-size:1.3em;color:var(--blue)}
+  .pullq{font-family:var(--marker);font-weight:700;color:var(--pink);font-size:2rem;line-height:1;
+    border-left:4px solid var(--blue);padding:6px 0 6px 18px;margin:34px 0;transform:rotate(-.8deg);
+    text-shadow:1px 1px 0 var(--blue)}
+  .next{border-top:3px dashed var(--blue);margin:50px auto 0;max-width:720px;padding:40px 28px 120px}
+  .next .h{font-family:var(--sticker);text-transform:uppercase;font-size:1.3rem;margin-bottom:24px;transform:rotate(-1.5deg);display:inline-block}
+  .ncard{display:flex;gap:16px;align-items:center;padding:16px;background:var(--card);margin-bottom:16px;
+    cursor:pointer;box-shadow:2px 4px 14px rgba(0,0,0,.12);transition:.2s var(--ease)}
+  .ncard:nth-child(even){transform:rotate(.8deg)}
+  .ncard:nth-child(odd){transform:rotate(-.8deg)}
+  .ncard:hover{transform:rotate(0) translateX(6px)}
+  .ncard .n{width:44px;height:44px;flex:none;display:grid;place-items:center}
+  .ncard h4{font-family:var(--marker);font-weight:700;font-size:1.45rem;line-height:.95;color:var(--ink)}
+  .ncard:hover h4{color:var(--pink)}
+  .ncard .m{font-family:var(--hand);font-size:.9rem;color:var(--blue)}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(24px) rotate(-1deg);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  .rv.in{opacity:1;transform:none}
+
+  /* ── RADIO + floating lyrics ── */
+  .radio-wrap{position:absolute;top:24px;right:0;width:240px;transform:rotate(2.5deg);z-index:5}
+  .radio{width:206px;display:block;margin:64px auto 0;filter:url(#rough);overflow:visible}
+  .np-tag{font-family:var(--grotesk);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-soft);text-align:center;margin-top:12px}
+  .np-tag b{color:var(--pink)}
+  .lyr{position:absolute;top:54px;font-family:var(--marker);font-weight:700;font-size:1.45rem;
+    white-space:nowrap;opacity:0;pointer-events:none;text-shadow:1px 1px 0 var(--blue)}
+  .lyr.l1{left:22px;color:var(--pink);animation:floatlyr 6.6s ease-in infinite}
+  .lyr.l2{left:54px;color:var(--blue);text-shadow:1px 1px 0 var(--pink);animation:floatlyr 6.6s ease-in infinite 2.2s}
+  .lyr.l3{left:30px;color:var(--pink);animation:floatlyr 6.6s ease-in infinite 4.4s}
+  @keyframes floatlyr{0%{opacity:0;transform:translateY(26px) rotate(-5deg)}
+    14%{opacity:1}54%{opacity:1}100%{opacity:0;transform:translateY(-44px) rotate(6deg)}}
+  @media(prefers-reduced-motion:reduce){.lyr,.eq i,.lid{animation:none}.lyr.l1{opacity:1}}
+
+  /* ── RESPONSIVE ── */
+  /* laptops / MacBook: keep nav from crowding */
+  @media(max-width:1100px){nav ul{gap:6px}nav a{font-size:.68rem;padding:5px 9px}}
+
+  /* tablets */
+  @media(max-width:820px){
+    .wrap{padding:0 22px}
+    .radio-wrap{transform:rotate(2deg) scale(.9);transform-origin:top right}
+  }
+
+  /* phones — all sizes */
+  @media(max-width:680px){
+    nav{display:none}
+    .brand{font-size:1.8rem}
+    .mast-inner{height:64px}
+    .theme-btn{padding:7px 10px;font-size:.66rem}
+    .hero{padding:24px 0 26px;min-height:auto}
+    /* radio flows above the headline instead of floating */
+    .radio-wrap{position:static;transform:rotate(-1.5deg);margin:0 auto 30px;width:230px}
+    .hero .eyebrow{margin-left:0 !important}
+    /* trim doodles that would collide with the headline on narrow screens */
+    .eye-d,.d-heart{display:none}
+    .hero h1{text-shadow:1.5px 1.5px 0 var(--blue)}
+    .sec-head h2{font-size:1.5rem}
+    .spread{padding:80px 0}
+    .sub{padding:46px 26px}
+  }
+
+  /* small phones (iPhone SE / older Android ~360px) */
+  @media(max-width:380px){
+    .wrap{padding:0 16px}
+    .radio,.radio-wrap{width:200px}
+    .hero h1{font-size:2.9rem}
+    .pin h3{font-size:1.5rem}
+    .sub input{width:100%}
+    .sub button{width:100%}
+  }
+</style>
+</head>
+<body data-theme="day">
+<div id="progress"></div>
+<canvas id="trail"></canvas>
+
+<!-- night-only ambience -->
+<div class="nightfx" id="fireflies" aria-hidden="true"></div>
+<div class="owl-perch" aria-hidden="true">
+  <span class="owl-hoo">hoo!</span>
+  <svg viewBox="0 0 170 175" width="150" fill="none">
+    <!-- branch -->
+    <path d="M2 152 Q70 142 168 150" stroke="#5a4a34" stroke-width="9" stroke-linecap="round"/>
+    <path d="M122 150 q16 -18 34 -9 q-11 18 -34 9 z" fill="#3a5a40"/>
+    <path d="M30 152 q-14 -14 -28 -6 q9 16 28 6 z" fill="#3a5a40"/>
+    <g class="owl-body">
+      <!-- body -->
+      <ellipse cx="78" cy="95" rx="42" ry="48" fill="#4a4664" stroke="#2b2842" stroke-width="3"/>
+      <ellipse cx="78" cy="104" rx="25" ry="31" fill="#6a6690"/>
+      <!-- ear tufts -->
+      <path d="M46 56 l-9 -24 l22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
+      <path d="M110 56 l9 -24 l-22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
+      <!-- eyes -->
+      <circle cx="62" cy="83" r="17" fill="#fff"/>
+      <circle cx="94" cy="83" r="17" fill="#fff"/>
+      <circle cx="62" cy="83" r="7.5" fill="#1C1A22"/>
+      <circle cx="94" cy="83" r="7.5" fill="#1C1A22"/>
+      <circle cx="59" cy="80" r="2.6" fill="#FBE08A"/>
+      <circle cx="91" cy="80" r="2.6" fill="#FBE08A"/>
+      <!-- beak -->
+      <path d="M78 92 l-8 12 l16 0 z" fill="#E0A33A"/>
+      <!-- feet -->
+      <path d="M64 141 v9 M70 141 v9 M86 141 v9 M92 141 v9" stroke="#E0A33A" stroke-width="3" stroke-linecap="round"/>
+      <!-- blinking lids -->
+      <circle class="owl-lid" cx="62" cy="83" r="17.5" fill="#4a4664"/>
+      <circle class="owl-lid" cx="94" cy="83" r="17.5" fill="#4a4664"/>
+    </g>
+  </svg>
+</div>
+
+<!-- rough marker filter -->
+<svg width="0" height="0" style="position:absolute"><defs>
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G"/></filter>
+</defs></svg>
+
+<header class="mast">
+  <div class="wrap mast-inner">
+    <div class="brand" onclick="closeReader()">moonlit ✷</div>
+    <nav><ul>
+      <li><a href="#wall">Stories</a></li>
+      <li><a href="#wall">Incidents</a></li>
+      <li><a href="#wall">Late nights</a></li>
+      <li><a href="#sub">About</a></li>
+    </ul></nav>
+    <button class="theme-btn" id="themeBtn">☾ night</button>
+  </div>
+</header>
+
+<main id="home">
+  <!-- HERO -->
+  <section class="hero wrap">
+    <!-- crescent moon, clear of the headline -->
+    <svg class="doodle" style="top:-4px;left:-48px;width:86px;height:86px;transform:rotate(-16deg)" viewBox="0 0 100 100" fill="var(--blue)" stroke="none">
+      <path d="M62 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/>
+    </svg>
+    <svg class="doodle" style="top:18px;left:104px;width:44px;height:44px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+    <!-- little heart bleeding off bottom-left -->
+    <svg class="doodle d-heart" style="bottom:-18px;left:24px;width:50px;height:50px;transform:rotate(-12deg)" viewBox="0 0 100 100" fill="var(--pink)"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
+
+    <!-- seductive blinking eye -->
+    <svg class="doodle eye-d" style="top:296px;left:34px;width:118px;height:70px;transform:rotate(-4deg)" viewBox="0 0 120 70">
+      <path d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round"/>
+      <g class="eye-ball">
+        <circle cx="60" cy="36" r="15" fill="var(--pink)"/>
+        <circle cx="60" cy="36" r="6" fill="#16161D"/>
+        <circle cx="55" cy="31" r="2.2" fill="#fff"/>
+      </g>
+      <g fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round">
+        <path d="M88 16 l6 -7 M60 6 v-7 M32 16 l-6 -7"/>
+      </g>
+      <path class="lid" d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="var(--paper)" stroke="var(--blue)" stroke-width="3.2"/>
+    </svg>
+
+
+    <div class="radio-wrap rv">
+      <span class="lyr l1">♪ moonlit nights</span>
+      <span class="lyr l2">strangely empty</span>
+      <span class="lyr l3">no answer ♫</span>
+      <svg class="radio" viewBox="0 0 210 162" fill="none" stroke-linecap="round">
+        <!-- antenna + note -->
+        <line x1="158" y1="48" x2="192" y2="12" stroke="var(--blue)" stroke-width="3.5"/>
+        <path d="M188 6 l2.5 7 l7.5 1 l-5.5 5 l1.5 7.5 l-6-3.5 l-6 3.5 l1.5-7.5 l-5.5-5 l7.5-1 z" fill="var(--pink)"/>
+        <!-- body -->
+        <rect x="16" y="46" width="178" height="100" rx="16" fill="var(--card)" stroke="var(--blue)" stroke-width="4"/>
+        <!-- speaker grille -->
+        <rect x="30" y="62" width="80" height="68" rx="10" stroke="var(--pink)" stroke-width="3"/>
+        <g stroke="var(--pink)" stroke-width="3">
+          <line x1="44" y1="70" x2="44" y2="122"/><line x1="58" y1="70" x2="58" y2="122"/>
+          <line x1="72" y1="70" x2="72" y2="122"/><line x1="86" y1="70" x2="86" y2="122"/><line x1="100" y1="70" x2="100" y2="122"/>
+        </g>
+        <!-- tuning dial -->
+        <rect x="124" y="62" width="58" height="34" rx="6" stroke="var(--blue)" stroke-width="3"/>
+        <g stroke="var(--blue)" stroke-width="2" opacity=".6">
+          <line x1="132" y1="68" x2="132" y2="73"/><line x1="142" y1="68" x2="142" y2="73"/>
+          <line x1="152" y1="68" x2="152" y2="73"/><line x1="162" y1="68" x2="162" y2="73"/><line x1="172" y1="68" x2="172" y2="73"/>
+        </g>
+        <line x1="150" y1="64" x2="150" y2="94" stroke="var(--pink)" stroke-width="3"/>
+        <!-- knobs + feet -->
+        <circle cx="138" cy="120" r="10" fill="var(--blue)"/>
+        <circle cx="168" cy="120" r="10" fill="var(--pink)"/>
+        <line x1="42" y1="146" x2="42" y2="156" stroke="var(--blue)" stroke-width="4"/>
+        <line x1="168" y1="146" x2="168" y2="156" stroke="var(--blue)" stroke-width="4"/>
+      </svg>
+      <div class="np-tag">▸ now playing — <b>TV Girl</b></div>
+    </div>
+
+    <span class="eyebrow" style="margin-left:52px">featured · this week ↓</span>
+    <h1>The Last Train Home</h1>
+    <svg class="scribble" viewBox="0 0 340 16" preserveAspectRatio="none"><path d="M4 11 q40 -9 80 -3 q50 7 96 -2 q56 -10 104 1 q30 6 52 -1"/></svg>
+    <p class="sub">a station that doesn't exist anymore, &amp; the man who waits for it anyway.</p>
+    <div class="meta">
+      <span class="pill ink">short story</span>
+      <span class="pill">7 min</span>
+      <span class="pill">scored to TV Girl</span>
+    </div>
+    <span style="position:relative;display:inline-block">
+      <button class="read-cta" onclick="openReader()">read it →</button>
+      <!-- hand-drawn arrow: starts at "go on", sweeps down-left into the button -->
+      <svg class="scatter" style="left:calc(100% + 6px);top:16px;width:92px;height:58px" viewBox="0 0 120 80" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M112 20 Q58 28 14 46"/>
+        <path d="M14 46 l20 3 M14 46 l12 -16"/>
+      </svg>
+      <span class="hand" style="position:absolute;left:calc(100% + 98px);top:28px;color:var(--pink);font-size:1.15rem;transform:rotate(-4deg);white-space:nowrap">go on...</span>
+    </span>
+  </section>
+
+  <!-- STORY WALL -->
+  <div class="wrap" id="wall">
+    <!-- a sun bleeding off the right edge + sprinkled stars -->
+    <svg class="scatter" style="right:-46px;top:-20px;width:130px;height:130px;z-index:0" viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
+      <circle cx="50" cy="50" r="15" fill="var(--pink)"/>
+      <g stroke="var(--pink)"><path d="M50 6v15M50 79v15M6 50h15M79 50h15M19 19l11 11M70 70l11 11M81 19l-11 11M30 70l-11 11"/></g>
+      <path d="M50 43 a7 7 0 1 1 -5 11" stroke="#fff" stroke-width="2.5"/>
+    </svg>
+    <svg class="scatter" style="left:38%;top:-26px;width:26px;height:26px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
+    <div class="sec-head rv"><h2>the wall</h2><span class="line"></span><span class="sticker" style="font-size:.9rem">11 pieces</span></div>
+    <div class="wall">
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="92" height="92" viewBox="0 0 100 100" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round">
+            <ellipse cx="50" cy="55" rx="34" ry="20"/><circle cx="50" cy="55" r="9" fill="var(--blue)"/>
+            <path d="M16 48 q34 -28 68 0" stroke="var(--pink)"/>
+          </svg>
+        </div>
+        <h3>The Neighbour Who Knocked at 3am</h3>
+        <p class="ex">four years in that flat. I'd never seen a door on that wall before.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">incident</span><span class="rt">5 min</span></div>
+      </article>
+
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="86" height="86" viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
+            <circle cx="50" cy="50" r="16" fill="var(--pink)"/>
+            <g stroke="var(--pink)"><path d="M50 8v14M50 78v14M8 50h14M78 50h14M20 20l10 10M70 70l10 10M80 20l-10 10M30 70l-10 10"/></g>
+            <path d="M50 44 a6 6 0 1 1 -4 10" stroke="#fff" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <h3>Salt &amp; Other Things My Grandmother Kept</h3>
+        <p class="ex">she measured grief the way she measured rice. by hand. never by cup.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">reflection</span><span class="rt">6 min</span></div>
+      </article>
+
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="var(--blue)">
+            <path d="M64 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/>
+            <path d="M24 26 L28 38 L40 42 L28 46 L24 58 L20 46 L8 42 L20 38 Z" fill="var(--pink)"/>
+          </svg>
+        </div>
+        <h3>A Brief History of the Light in Room 4</h3>
+        <p class="ex">it flickered for thirty years. the hospital called it faulty wiring.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">short story</span><span class="rt">9 min</span></div>
+      </article>
+
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="84" height="84" viewBox="0 0 100 100" fill="var(--pink)">
+            <path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/>
+          </svg>
+        </div>
+        <h3>What the River Returned</h3>
+        <p class="ex">every monsoon it took something. that year, it gave one thing back.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">short story</span><span class="rt">4 min</span></div>
+      </article>
+
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="86" height="86" viewBox="0 0 100 100" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round">
+            <path d="M30 80 a22 22 0 1 1 4 0" /><path d="M50 60 q14 -6 8 -20 q-4 -10 6 -14" stroke="var(--pink)"/>
+            <path d="M64 26 q8 -2 6 -10" stroke="var(--pink)"/>
+          </svg>
+        </div>
+        <h3>The Man Who Counted Footsteps</h3>
+        <p class="ex">eleven thousand to the office. he told me the day it became 10,900.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">incident</span><span class="rt">3 min</span></div>
+      </article>
+
+      <article class="pin rv" onclick="openReader()">
+        <span class="tapebit"></span>
+        <div class="thumb">
+          <svg width="90" height="90" viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
+            <rect x="20" y="40" width="60" height="26" rx="2"/><path d="M20 40 L50 22 L80 40" stroke="var(--blue)"/>
+            <path d="M40 30 q6 -8 0 -16M58 30 q6 -8 0 -16" stroke="var(--blue)"/>
+          </svg>
+        </div>
+        <h3>Letters I Never Posted</h3>
+        <p class="ex">forty-two of them. all addressed. none of them wrong.</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">reflection</span><span class="rt">8 min</span></div>
+      </article>
+    </div>
+  </div>
+
+  <!-- QUOTE SPREAD -->
+  <section class="spread wrap rv">
+    <svg class="doodle" style="top:40px;left:6%;width:70px;height:70px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+    <svg class="doodle" style="bottom:40px;right:8%;width:54px;height:54px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
+    <blockquote>If I was the moon, would you still look for the stars?</blockquote>
+    <div class="by">— from the margins of an old notebook</div>
+  </section>
+
+  <!-- SUBSCRIBE -->
+  <section class="wrap" id="sub">
+    <span class="tape" style="top:-13px;left:60px;transform:rotate(-6deg)"></span>
+    <span class="tape" style="top:-13px;right:80px;transform:rotate(7deg)"></span>
+    <svg class="scatter" style="right:-30px;bottom:-30px;width:80px;height:80px;transform:rotate(10deg)" viewBox="0 0 100 100" fill="var(--pink)"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
+    <div class="sub rv">
+      <h2>get new stories<br>when the ink dries.</h2>
+      <svg class="scribble" viewBox="0 0 340 16" preserveAspectRatio="none" style="max-width:300px"><path d="M4 11 q40 -9 80 -3 q50 7 96 -2 q56 -10 104 1 q30 6 52 -1" stroke="var(--pink)"/></svg>
+      <p>no schedule, no spam. just a note when something new is scribbled down.</p>
+      <form onsubmit="return false">
+        <input type="email" placeholder="your@email.com" aria-label="email">
+        <button type="submit">subscribe ✷</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <span class="brand">moonlit ✷</span>
+    <p>written by hand · read by lamplight · 2026</p>
+    <p style="margin-top:8px;font-family:var(--grotesk);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)">Created by <span style="color:var(--pink)">Darsh</span></p>
+  </footer>
+</main>
+
+<!-- READING VIEW -->
+<div id="reader">
+  <div class="rbar">
+    <div class="rbar-in">
+      <button class="back-btn" onclick="closeReader()">← the wall</button>
+      <span class="pill">7 min</span>
+      <div class="rprog" id="rprog"></div>
+    </div>
+  </div>
+  <article class="page">
+    <span class="sticker">short story</span>
+    <h1>The Last Train Home</h1>
+    <div class="byl">scribbled june 18 · scored to "Cigarettes out the Window"</div>
+    <div class="body">
+      <p>The station at Maranhalli closed in 1991, but my father kept its timetable folded in his shirt pocket until the day he died. He could recite it the way other men recite prayer — the 6:40 to the city, the 9:15 that only ran on Sundays, the last train home at a quarter past eleven.</p>
+      <p>I used to think it was nostalgia. I understand now it was something closer to <em>faith.</em></p>
+      <div class="pullq">"you always wait for the things you love. even after they stop coming."</div>
+      <p>The platform is still there, if you know where the road forks past the dry well. The rails were lifted decades ago, but the gravel keeps their shape — two pale lines running off into the tall grass like the memory of a sentence you can almost finish.</p>
+      <p>He went there every evening. Took out the timetable. Checked his watch against a train that hadn't arrived in thirty years. Neighbours called it grief. I called it stubbornness. We were both wrong.</p>
+      <p>On the last evening I followed him. Sat down without a word. And at exactly a quarter past eleven I heard it — faint, impossible, the long exhale of a train slowing into a station that no longer existed. He smiled, folded the timetable, and stood as if to board.</p>
+    </div>
+  </article>
+  <div class="next">
+    <span class="h">keep reading →</span>
+    <div class="ncard" onclick="scrollReaderTop()">
+      <svg class="n" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 50 C6 33 12 9 30 21 C48 9 54 33 30 50 Z"/></svg>
+      <div><h4>Salt &amp; Other Things My Grandmother Kept</h4><div class="m">reflection · 6 min</div></div>
+    </div>
+    <div class="ncard" onclick="scrollReaderTop()">
+      <svg class="n" viewBox="0 0 60 60" fill="var(--blue)"><path d="M40 8 a22 22 0 1 0 3 44 a17 17 0 1 1 -3-44 z"/></svg>
+      <div><h4>The Neighbour Who Knocked at 3am</h4><div class="m">incident · 5 min</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const themeBtn=document.getElementById('themeBtn');
+  themeBtn.onclick=()=>{
+    const night=document.body.getAttribute('data-theme')==='night';
+    document.body.setAttribute('data-theme',night?'day':'night');
+    themeBtn.textContent=night?'☾ night':'☀ day';
+  };
+  const prog=document.getElementById('progress');
+  window.addEventListener('scroll',()=>{const h=document.documentElement;
+    prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+  const rvEls=document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0,rootMargin:'0px 0px -8% 0px'});
+    rvEls.forEach(el=>io.observe(el));
+    // safety: anything already on screen reveals immediately (any zoom / viewport)
+    const revealVisible=()=>rvEls.forEach(el=>{const r=el.getBoundingClientRect();if(r.top<innerHeight&&r.bottom>0)el.classList.add('in');});
+    addEventListener('load',revealVisible);revealVisible();
+  }else{rvEls.forEach(el=>el.classList.add('in'));}
+  const reader=document.getElementById('reader'),rp=document.getElementById('rprog');
+  function openReader(){reader.classList.add('open');reader.scrollTop=0;document.body.style.overflow='hidden';}
+  function closeReader(){reader.classList.remove('open');document.body.style.overflow='';}
+  function scrollReaderTop(){reader.scrollTo({top:0,behavior:'smooth'});}
+  reader.addEventListener('scroll',()=>{rp.style.width=(reader.scrollTop/(reader.scrollHeight-reader.clientHeight)*100)+'%';});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReader();});
+
+  /* ── marker trail that follows the cursor & fades when you stop ── */
+  (function(){
+    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const c=document.getElementById('trail');
+    if(!c||reduce)return;
+    const x=c.getContext('2d');
+    let pts=[],dpr=1;
+    function size(){
+      dpr=Math.min(window.devicePixelRatio||1,2);
+      c.width=innerWidth*dpr;c.height=innerHeight*dpr;
+      c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';
+      x.setTransform(dpr,0,0,dpr,0,0);
+    }
+    size();addEventListener('resize',size);
+    // cheap color lookup (no getComputedStyle — that was forcing a recalc each move)
+    function inkColor(){return document.body.getAttribute('data-theme')==='night'?'#EF85AE':'#E5147B';}
+    addEventListener('pointermove',e=>{
+      if(e.pointerType && e.pointerType!=='mouse')return;   // skip touch/pen
+      pts.push({x:e.clientX,y:e.clientY,t:performance.now()});
+    },{passive:true});
+    const LIFE=360, MAXLEN=230;              // short life + capped length = snappy, never long
+    function draw(){
+      x.clearRect(0,0,innerWidth,innerHeight);
+      const now=performance.now();
+      pts=pts.filter(p=>now-p.t<LIFE);       // tail recedes after you stop
+      // trim from the head so the visible stroke never exceeds MAXLEN pixels
+      let acc=0,cut=0;
+      for(let i=pts.length-1;i>0;i--){
+        acc+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
+        if(acc>MAXLEN){cut=i;break;}
+      }
+      if(cut>0)pts=pts.slice(cut);
+      if(pts.length>1){
+        x.lineCap='round';x.lineJoin='round';x.lineWidth=5;
+        x.strokeStyle=inkColor();x.globalAlpha=.95;
+        x.beginPath();x.moveTo(pts[0].x,pts[0].y);
+        for(let i=1;i<pts.length-1;i++){      // smooth through midpoints
+          const mx=(pts[i].x+pts[i+1].x)/2,my=(pts[i].y+pts[i+1].y)/2;
+          x.quadraticCurveTo(pts[i].x,pts[i].y,mx,my);
+        }
+        x.lineTo(pts[pts.length-1].x,pts[pts.length-1].y);
+        x.stroke();x.globalAlpha=1;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  /* ── night ambience + interactivity: fireflies (scatter), eye-follow, owl reactions ── */
+  (function(){
+    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const box=document.getElementById('fireflies');
+    const ff=[];
+    if(box && !reduce){
+      const N=innerWidth<680?10:18;
+      for(let i=0;i<N;i++){
+        const f=document.createElement('span');f.className='firefly';
+        const s=(3+Math.random()*4).toFixed(1);
+        f.style.left=(Math.random()*100)+'vw';
+        f.style.top=(8+Math.random()*82)+'vh';
+        f.style.width=s+'px';f.style.height=s+'px';
+        f.style.setProperty('--dx',(Math.random()*120-60).toFixed(0)+'px');
+        f.style.setProperty('--dy',(Math.random()*120-60).toFixed(0)+'px');
+        f.style.setProperty('--dur',(12+Math.random()*12).toFixed(1)+'s');
+        f.style.animationDelay=(-Math.random()*16).toFixed(1)+'s';
+        const dot=document.createElement('i');
+        dot.style.setProperty('--tw',(2+Math.random()*3).toFixed(1)+'s');
+        dot.style.animationDelay=(-Math.random()*5).toFixed(1)+'s';
+        f.appendChild(dot);box.appendChild(f);ff.push(f);
+      }
+    }
+    const eyeSvg=document.querySelector('.eye-d');
+    const eyeBall=eyeSvg&&eyeSvg.querySelector('.eye-ball');
+    const owl=document.querySelector('.owl-perch');
+    let mx=innerWidth/2,my=innerHeight/2,moved=false,owlCool=0;
+    const night=()=>document.body.getAttribute('data-theme')==='night';
+    addEventListener('pointermove',e=>{if(e.pointerType&&e.pointerType!=='mouse')return;mx=e.clientX;my=e.clientY;moved=true;},{passive:true});
+    function tick(){
+      if(moved){
+        moved=false;
+        if(eyeBall){                                   // iris tracks cursor only when near
+          const r=eyeSvg.getBoundingClientRect();
+          const cx=r.left+r.width/2, cy=r.top+r.height/2;
+          const dx=mx-cx, dy=my-cy;
+          if(Math.hypot(dx,dy)<200){
+            const ex=Math.max(-1,Math.min(1,dx/130)), ey=Math.max(-1,Math.min(1,dy/130));
+            eyeBall.setAttribute('transform','translate('+(ex*13).toFixed(1)+','+(ey*5).toFixed(1)+')');
+          }else{
+            eyeBall.setAttribute('transform','translate(0,0)');   // rest at center
+          }
+        }
+        if(night() && !reduce){
+          for(const f of ff){                          // fireflies flee the cursor
+            const dot=f.firstChild,r=f.getBoundingClientRect();
+            const dx=(r.left+r.width/2)-mx,dy=(r.top+r.height/2)-my,d=Math.hypot(dx,dy);
+            if(d<95){const p=(95-d)/95*42;dot.style.transform='translate('+(dx/(d||1)*p).toFixed(1)+'px,'+(dy/(d||1)*p).toFixed(1)+'px)';}
+            else dot.style.transform='none';
+          }
+          if(owl && !owl.classList.contains('flyaway')){ // owl gets spooked
+            const r=owl.getBoundingClientRect();
+            const d=Math.hypot(mx-(r.left+r.width/2),my-(r.top+r.height/2)),now=performance.now();
+            if(d<155 && now-owlCool>2800){
+              owlCool=now;
+              if(Math.random()<0.3){owl.classList.add('flyaway');setTimeout(()=>owl.classList.remove('flyaway'),3400);}
+              else{owl.classList.add('startle');setTimeout(()=>owl.classList.remove('startle'),1000);}
+            }
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>
+</body>
+</html>
