@@ -1,4 +1,5 @@
 ---
+import { storyblokEditable } from '@storyblok/astro';
 import Base from '../../layouts/Base.astro';
 import Doodle from '../../components/Doodle.astro';
 import { getAllPosts } from '../../lib/posts.js';
@@ -16,7 +17,7 @@ const dateStr = post.date
 ---
 <Base title={`${post.title} — moonlit`} description={post.excerpt}>
 <main>
-  <article class="page" style="padding-top:46px">
+  <article class="page" style="padding-top:46px" {...storyblokEditable(post.editable)}>
     <span class="sticker">{post.categoryLabel}</span>
     <h1>{post.title}</h1>
     <div class="byl">

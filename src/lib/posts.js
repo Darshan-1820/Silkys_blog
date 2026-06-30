@@ -34,6 +34,7 @@ function toPost(story) {
     date: c.date || story.first_published_at || story.created_at,
     bodyHtml: c.body ? renderRichText(c.body) : '',
     readTime: Math.max(1, Math.round(words / 200)),
+    editable: c, // carries Storyblok's _editable marker for click-to-edit in the Visual Editor
   };
 }
 

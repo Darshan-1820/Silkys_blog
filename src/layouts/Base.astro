@@ -19,7 +19,6 @@ const {
 </head>
 <body data-theme="day">
 <div id="progress"></div>
-<canvas id="trail"></canvas>
 
 <!-- night-only ambience -->
 <div class="nightfx" id="fireflies" aria-hidden="true"></div>
@@ -93,52 +92,6 @@ const {
     addEventListener('load',revealVisible);revealVisible();
   }else{rvEls.forEach(el=>el.classList.add('in'));}
 
-  /* ── marker trail that follows the cursor & fades when you stop ── */
-  (function(){
-    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-    const c=document.getElementById('trail');
-    if(!c||reduce)return;
-    const x=c.getContext('2d');
-    let pts=[],dpr=1;
-    function size(){
-      dpr=Math.min(window.devicePixelRatio||1,2);
-      c.width=innerWidth*dpr;c.height=innerHeight*dpr;
-      c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';
-      x.setTransform(dpr,0,0,dpr,0,0);
-    }
-    size();addEventListener('resize',size);
-    function inkColor(){return document.body.getAttribute('data-theme')==='night'?'#EF85AE':'#E5147B';}
-    addEventListener('pointermove',e=>{
-      if(e.pointerType && e.pointerType!=='mouse')return;
-      pts.push({x:e.clientX,y:e.clientY,t:performance.now()});
-    },{passive:true});
-    const LIFE=360, MAXLEN=230;
-    function draw(){
-      x.clearRect(0,0,innerWidth,innerHeight);
-      const now=performance.now();
-      pts=pts.filter(p=>now-p.t<LIFE);
-      let acc=0,cut=0;
-      for(let i=pts.length-1;i>0;i--){
-        acc+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
-        if(acc>MAXLEN){cut=i;break;}
-      }
-      if(cut>0)pts=pts.slice(cut);
-      if(pts.length>1){
-        x.lineCap='round';x.lineJoin='round';x.lineWidth=5;
-        x.strokeStyle=inkColor();x.globalAlpha=.95;
-        x.beginPath();x.moveTo(pts[0].x,pts[0].y);
-        for(let i=1;i<pts.length-1;i++){
-          const mx=(pts[i].x+pts[i+1].x)/2,my=(pts[i].y+pts[i+1].y)/2;
-          x.quadraticCurveTo(pts[i].x,pts[i].y,mx,my);
-        }
-        x.lineTo(pts[pts.length-1].x,pts[pts.length-1].y);
-        x.stroke();x.globalAlpha=1;
-      }
-      requestAnimationFrame(draw);
-    }
-    draw();
-  })();
-
   /* ── night ambience + interactivity: fireflies (scatter), eye-follow, owl reactions ── */
   (function(){
     const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -204,6 +157,20 @@ const {
     }
     requestAnimationFrame(tick);
   })();
+</script>
+
+<!-- Storyblok Visual Editor bridge: loads ONLY inside Storyblok's editor, so the
+     live preview refreshes as Silky types. No effect on the public site. -->
+<script is:inline>
+  if (window.location.search.includes('_storyblok')) {
+    const s = document.createElement('script');
+    s.src = 'https://app.storyblok.com/f/storyblok-v2-latest.js';
+    s.onload = () => {
+      const bridge = new window.StoryblokBridge();
+      bridge.on(['input', 'published', 'change'], () => location.reload());
+    };
+    document.head.appendChild(s);
+  }
 </script>
 </body>
 </html>
