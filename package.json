@@ -10,6 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.6.0"
+    "@storyblok/astro": "^10.0.1",
+    "astro": "^5.6.0",
+    "storyblok-js-client": "^7.6.1"
   }
 }
