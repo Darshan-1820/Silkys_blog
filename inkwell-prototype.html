@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkwell — a home for stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F2EA;
+    --paper-2:#EFE7D8;
+    --ink:#1C1C1C;
+    --ink-soft:#5C5046;
+    --ink-faint:#8A7E70;
+    --oxblood:#8B5E3C;        /* accent — warm caramel */
+    --oxblood-deep:#A76C44;   /* hover — lighter warm brown */
+    --line:#E5D8C8;
+    --display:"Fraunces",serif;
+    --body:"Newsreader",serif;
+    --label:"Space Grotesk",sans-serif;
+    --measure:65ch;
+    --ease:cubic-bezier(.16,.84,.44,1);
+  }
+  [data-theme="dark"]{
+    --paper:#1F1A15;
+    --paper-2:#29221B;
+    --ink:#ECE3D5;
+    --ink-soft:#B5A899;
+    --ink-faint:#897C6D;
+    --oxblood:#C68A5E;
+    --oxblood-deep:#D49B6F;
+    --line:#3A322A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:1.125rem;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    transition:background .6s var(--ease),color .6s var(--ease);
+    overflow-x:hidden;
+  }
+  /* paper grain */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection{background:var(--oxblood);color:var(--paper)}
+
+  .label{font-family:var(--label);text-transform:uppercase;letter-spacing:.22em;font-size:.7rem;font-weight:500;color:var(--ink-faint)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+  /* progress bar */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--oxblood);z-index:60;transition:width .1s linear}
+
+  /* ── MASTHEAD ── */
+  header.mast{position:sticky;top:0;z-index:50;backdrop-filter:blur(8px);
+    background:color-mix(in srgb,var(--paper) 82%,transparent);
+    border-bottom:1px solid var(--line);transition:background .6s var(--ease)}
+  .mast-inner{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .logo{font-family:var(--display);font-weight:600;font-size:1.5rem;letter-spacing:-.01em;font-optical-sizing:auto;cursor:pointer}
+  .logo b{color:var(--oxblood);font-style:italic;font-weight:500}
+  nav ul{display:flex;gap:36px;list-style:none}
+  nav a{font-family:var(--label);font-size:.82rem;letter-spacing:.04em;color:var(--ink-soft);text-decoration:none;position:relative}
+  nav a::after{content:"";position:absolute;left:0;bottom:-6px;height:1px;width:0;background:var(--oxblood);transition:width .4s var(--ease)}
+  nav a:hover{color:var(--ink)}nav a:hover::after{width:100%}
+  .mast-tools{display:flex;align-items:center;gap:18px}
+  .theme-btn{background:none;border:1px solid var(--line);border-radius:999px;width:38px;height:38px;cursor:pointer;color:var(--ink);font-size:1rem;display:grid;place-items:center;transition:.3s var(--ease)}
+  .theme-btn:hover{border-color:var(--oxblood);color:var(--oxblood)}
+  @media(max-width:760px){nav{display:none}}
+
+  /* ── HERO / FEATURED ── */
+  .hero{padding:90px 0 70px;border-bottom:1px solid var(--line);position:relative}
+  .hero .kicker{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+  .hero .kicker .rule{height:1px;width:48px;background:var(--oxblood)}
+  .hero h1{font-family:var(--display);font-weight:340;font-size:clamp(2.8rem,7vw,5.6rem);line-height:.98;letter-spacing:-.025em;max-width:14ch;font-optical-sizing:auto}
+  .hero h1 em{font-style:italic;color:var(--oxblood);font-weight:380}
+  .hero .dek{font-size:clamp(1.15rem,2vw,1.4rem);color:var(--ink-soft);max-width:46ch;margin-top:28px;line-height:1.55}
+  .hero .meta{margin-top:34px;display:flex;align-items:center;gap:20px;font-family:var(--label);font-size:.78rem;color:var(--ink-faint);letter-spacing:.05em}
+  .hero .meta .dot{width:4px;height:4px;border-radius:50%;background:var(--ink-faint)}
+  .read-cta{margin-top:42px;display:inline-flex;align-items:center;gap:12px;font-family:var(--label);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:none;border:none;cursor:pointer;padding:0}
+  .read-cta .arrow{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid var(--ink);transition:.4s var(--ease)}
+  .read-cta:hover .arrow{background:var(--oxblood);border-color:var(--oxblood);color:var(--paper);transform:translateX(4px)}
+
+  /* ── SECTION HEAD ── */
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:80px 0 40px;border-bottom:1px solid var(--line);padding-bottom:18px}
+  .sec-head h2{font-family:var(--display);font-weight:400;font-size:1.9rem;letter-spacing:-.01em}
+
+  /* ── STORY GRID ── */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+  .card{background:var(--paper);padding:38px 34px 42px;cursor:pointer;position:relative;transition:background .4s var(--ease)}
+  .card:hover{background:var(--paper-2)}
+  .card .num{font-family:var(--label);font-size:.72rem;color:var(--oxblood);letter-spacing:.15em}
+  .card h3{font-family:var(--display);font-weight:380;font-size:1.7rem;line-height:1.12;letter-spacing:-.01em;margin:18px 0 14px;transition:color .3s}
+  .card:hover h3{color:var(--oxblood-deep)}
+  .card p{color:var(--ink-soft);font-size:1rem;line-height:1.55;max-width:34ch}
+  .card .foot{margin-top:24px;display:flex;gap:14px;align-items:center;font-family:var(--label);font-size:.72rem;color:var(--ink-faint);letter-spacing:.05em}
+  .tag{display:inline-block;font-family:var(--label);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--oxblood);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+  /* ── QUOTE BREAK ── */
+  .quote{padding:120px 0;text-align:center}
+  .quote blockquote{font-family:var(--display);font-style:italic;font-weight:330;font-size:clamp(1.8rem,4.5vw,3.2rem);line-height:1.25;letter-spacing:-.02em;max-width:20ch;margin:0 auto;color:var(--ink)}
+  .quote .who{margin-top:32px;font-family:var(--label);font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+
+  /* ── NEWSLETTER ── */
+  .news{background:var(--ink);color:var(--paper);padding:90px 0;text-align:center;margin-top:40px}
+  [data-theme="dark"] .news{background:var(--paper-2);color:var(--ink)}
+  .news h2{font-family:var(--display);font-weight:340;font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.02em;line-height:1.05;max-width:18ch;margin:0 auto}
+  .news h2 em{font-style:italic;color:var(--oxblood)}
+  .news p{margin:22px auto 0;max-width:42ch;color:color-mix(in srgb,var(--paper) 65%,transparent)}
+  [data-theme="dark"] .news p{color:var(--ink-soft)}
+  .news form{margin-top:38px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .news input{font-family:var(--body);font-size:1rem;padding:15px 20px;width:300px;max-width:80vw;border:1px solid color-mix(in srgb,var(--paper) 30%,transparent);background:transparent;color:inherit;border-radius:2px}
+  [data-theme="dark"] .news input{border-color:var(--line)}
+  .news input::placeholder{color:color-mix(in srgb,var(--paper) 45%,transparent)}
+  .news button{font-family:var(--label);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;padding:15px 30px;background:var(--oxblood);color:var(--paper);border:none;cursor:pointer;border-radius:2px;transition:.3s}
+  .news button:hover{background:var(--oxblood-deep)}
+
+  footer{padding:60px 0;text-align:center;border-top:1px solid var(--line)}
+  footer .logo{font-size:1.3rem;margin-bottom:14px}
+  footer p{font-family:var(--label);font-size:.74rem;letter-spacing:.06em;color:var(--ink-faint)}
+
+  /* ── READING VIEW ── */
+  #reader{position:fixed;inset:0;z-index:70;background:var(--paper);overflow-y:auto;
+    opacity:0;visibility:hidden;transition:opacity .5s var(--ease);transition-delay:.05s}
+  #reader.open{opacity:1;visibility:visible}
+  .reader-bar{position:sticky;top:0;z-index:5;backdrop-filter:blur(8px);background:color-mix(in srgb,var(--paper) 82%,transparent);border-bottom:1px solid var(--line)}
+  .reader-bar-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:760px;margin:0 auto;padding:0 28px}
+  .back-btn{font-family:var(--label);font-size:.78rem;letter-spacing:.06em;background:none;border:none;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;gap:8px}
+  .back-btn:hover{color:var(--oxblood)}
+  .reader-prog{position:absolute;bottom:-1px;left:0;height:2px;background:var(--oxblood);width:0}
+  .article{max-width:680px;margin:0 auto;padding:80px 28px 40px}
+  .article .label{margin-bottom:20px;display:block}
+  .article h1{font-family:var(--display);font-weight:350;font-size:clamp(2.4rem,6vw,3.8rem);line-height:1.02;letter-spacing:-.025em;margin-bottom:24px}
+  .article .byline{display:flex;gap:16px;align-items:center;font-family:var(--label);font-size:.76rem;letter-spacing:.05em;color:var(--ink-faint);padding-bottom:38px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .article .body{font-size:1.3rem;line-height:1.78;color:var(--ink);margin-top:44px}
+  .article .body p{margin-bottom:28px;max-width:65ch}
+  .article .body p:first-of-type::first-letter{
+    font-family:var(--display);font-weight:400;float:left;font-size:5.2rem;line-height:.72;
+    padding:8px 14px 0 0;color:var(--oxblood)}
+  .article .body em{color:var(--oxblood);font-style:italic}
+  .next-rail{border-top:1px solid var(--line);margin-top:60px;padding:50px 28px 110px;max-width:680px;margin-left:auto;margin-right:auto}
+  .next-rail .label{margin-bottom:18px;display:block}
+  .next-card{cursor:pointer;padding:30px 0;border-bottom:1px solid var(--line);transition:.3s}
+  .next-card:hover{padding-left:10px}
+  .next-card h4{font-family:var(--display);font-weight:380;font-size:1.5rem;line-height:1.15;transition:color .3s}
+  .next-card:hover h4{color:var(--oxblood-deep)}
+  .next-card .m{font-family:var(--label);font-size:.72rem;letter-spacing:.05em;color:var(--ink-faint);margin-top:8px}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body data-theme="light">
+<div id="progress"></div>
+
+<header class="mast">
+  <div class="wrap mast-inner">
+    <div class="logo" onclick="closeReader()">Ink<b>well</b></div>
+    <nav><ul>
+      <li><a href="#stories">Short Stories</a></li>
+      <li><a href="#stories">Incidents</a></li>
+      <li><a href="#stories">Reflections</a></li>
+      <li><a href="#about">About</a></li>
+    </ul></nav>
+    <div class="mast-tools">
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle reading mode">☾</button>
+    </div>
+  </div>
+</header>
+
+<!-- HOMEPAGE -->
+<main id="home">
+  <section class="hero wrap">
+    <div class="kicker"><span class="rule"></span><span class="label">Featured story · this week</span></div>
+    <h1>The Last Train <em>Home</em></h1>
+    <p class="dek">A station that no longer exists. A man who waits for it anyway. Sometimes the things we lose keep their timetable.</p>
+    <div class="meta">
+      <span>Short Story</span><span class="dot"></span><span>7 min read</span><span class="dot"></span><span>June 2026</span>
+    </div>
+    <button class="read-cta" onclick="openReader()">
+      <span class="arrow">→</span> Begin reading
+    </button>
+  </section>
+
+  <div class="wrap" id="stories">
+    <div class="sec-head reveal"><h2>Latest writing</h2><span class="label">Eleven pieces</span></div>
+    <div class="grid">
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">01</span>
+        <h3>The Neighbour Who Knocked at 3 a.m.</h3>
+        <p>I had lived there four years. I had never seen a door on that wall before.</p>
+        <div class="foot"><span class="tag">Incident</span><span>5 min</span></div>
+      </article>
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">02</span>
+        <h3>Salt, and Other Things My Grandmother Kept</h3>
+        <p>She measured grief the way she measured rice — by hand, never by cup.</p>
+        <div class="foot"><span class="tag">Reflection</span><span>6 min</span></div>
+      </article>
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">03</span>
+        <h3>A Brief History of the Light in Room 4</h3>
+        <p>It flickered for thirty years. The hospital called it faulty wiring.</p>
+        <div class="foot"><span class="tag">Short Story</span><span>9 min</span></div>
+      </article>
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">04</span>
+        <h3>What the River Returned</h3>
+        <p>Every monsoon it took something. That year, it gave one thing back.</p>
+        <div class="foot"><span class="tag">Short Story</span><span>4 min</span></div>
+      </article>
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">05</span>
+        <h3>The Man Who Counted Footsteps</h3>
+        <p>Eleven thousand to the office. He told me the day it became ten thousand nine hundred.</p>
+        <div class="foot"><span class="tag">Incident</span><span>3 min</span></div>
+      </article>
+      <article class="card reveal" onclick="openReader()">
+        <span class="num">06</span>
+        <h3>Letters I Never Posted</h3>
+        <p>Forty-two of them. All addressed. None of them wrong.</p>
+        <div class="foot"><span class="tag">Reflection</span><span>8 min</span></div>
+      </article>
+    </div>
+  </div>
+
+  <section class="quote wrap reveal">
+    <blockquote>“A story is a letter the author writes to himself, to tell himself things he could not discover otherwise.”</blockquote>
+    <div class="who">Carlos Ruiz Zafón</div>
+  </section>
+
+  <section class="news" id="about">
+    <div class="wrap">
+      <h2 class="reveal">New stories, <em>quietly</em> delivered.</h2>
+      <p class="reveal">No noise. No algorithms. Just a new piece in your inbox whenever the ink dries. Unsubscribe in one click, always.</p>
+      <form class="reveal" onsubmit="return false">
+        <input type="email" placeholder="your@email.com" aria-label="Email">
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo">Ink<b>well</b></div>
+    <p>Written by hand · Made to be read slowly · © 2026</p>
+  </footer>
+</main>
+
+<!-- READING VIEW -->
+<div id="reader">
+  <div class="reader-bar">
+    <div class="reader-bar-inner">
+      <button class="back-btn" onclick="closeReader()">← All stories</button>
+      <span class="label">7 min read</span>
+      <div class="reader-prog" id="readerProg"></div>
+    </div>
+  </div>
+  <article class="article">
+    <span class="label">Short Story</span>
+    <h1>The Last Train Home</h1>
+    <div class="byline"><span>By the author</span><span>·</span><span>June 18, 2026</span></div>
+    <div class="body">
+      <p>The station at Maranhalli closed in 1991, but my father kept its timetable folded in his shirt pocket until the day he died. He could recite it the way other men recited prayer — the 6:40 to the city, the 9:15 that only ran on Sundays, the last train home at a quarter past eleven.</p>
+      <p>I used to think it was nostalgia. I understand now that it was something closer to <em>faith.</em></p>
+      <p>The platform is still there, if you know where the road forks past the dry well. The rails were lifted decades ago, but the gravel keeps their shape, two pale lines running off into the tall grass like the memory of a sentence you can almost finish.</p>
+      <p>He went there every evening. He would sit on the broken bench, take out the timetable, and check his watch against a train that had not arrived in thirty years. Neighbours called it grief. I called it stubbornness. Both of us were wrong.</p>
+      <p>On the last evening, I followed him. I sat down beside him without a word, and at exactly a quarter past eleven, I heard it — faint, impossible, the long exhale of a train slowing into a station that no longer existed. He smiled, folded the timetable, and stood as if to board.</p>
+      <p>“You always wait for the things you love,” he said. “Even after they stop coming.”</p>
+    </div>
+  </article>
+  <div class="next-rail">
+    <span class="label">Keep reading →</span>
+    <div class="next-card" onclick="scrollReaderTop()">
+      <h4>Salt, and Other Things My Grandmother Kept</h4>
+      <div class="m">Reflection · 6 min read</div>
+    </div>
+    <div class="next-card" onclick="scrollReaderTop()">
+      <h4>The Neighbour Who Knocked at 3 a.m.</h4>
+      <div class="m">Incident · 5 min read</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // theme toggle
+  const themeBtn=document.getElementById('themeBtn');
+  themeBtn.onclick=()=>{
+    const b=document.body;
+    const dark=b.getAttribute('data-theme')==='dark';
+    b.setAttribute('data-theme',dark?'light':'dark');
+    themeBtn.textContent=dark?'☾':'☀';
+  };
+
+  // homepage scroll progress
+  const prog=document.getElementById('progress');
+  window.addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const sc=h.scrollTop/(h.scrollHeight-h.clientHeight);
+    prog.style.width=(sc*100)+'%';
+  });
+
+  // reveal on scroll
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+  },{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // reader open/close
+  const reader=document.getElementById('reader');
+  function openReader(){reader.classList.add('open');reader.scrollTop=0;document.body.style.overflow='hidden';}
+  function closeReader(){reader.classList.remove('open');document.body.style.overflow='';}
+  function scrollReaderTop(){reader.scrollTo({top:0,behavior:'smooth'});}
+
+  // reader reading progress
+  const rp=document.getElementById('readerProg');
+  reader.addEventListener('scroll',()=>{
+    const sc=reader.scrollTop/(reader.scrollHeight-reader.clientHeight);
+    rp.style.width=(sc*100)+'%';
+  });
+
+  // esc closes reader
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReader();});
+</script>
+</body>
+</html>
