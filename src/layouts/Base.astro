@@ -1,0 +1,209 @@
+---
+import '../styles/global.css';
+
+const {
+  title = 'moonlit — stories, scribbled',
+  description = "short stories, incidents & reflections — scribbled by hand, read by lamplight.",
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<meta name="description" content={description}>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="day">
+<div id="progress"></div>
+<canvas id="trail"></canvas>
+
+<!-- night-only ambience -->
+<div class="nightfx" id="fireflies" aria-hidden="true"></div>
+<div class="owl-perch" aria-hidden="true">
+  <span class="owl-hoo">hoo!</span>
+  <svg viewBox="0 0 170 175" width="150" fill="none">
+    <path d="M2 152 Q70 142 168 150" stroke="#5a4a34" stroke-width="9" stroke-linecap="round"/>
+    <path d="M122 150 q16 -18 34 -9 q-11 18 -34 9 z" fill="#3a5a40"/>
+    <path d="M30 152 q-14 -14 -28 -6 q9 16 28 6 z" fill="#3a5a40"/>
+    <g class="owl-body">
+      <ellipse cx="78" cy="95" rx="42" ry="48" fill="#4a4664" stroke="#2b2842" stroke-width="3"/>
+      <ellipse cx="78" cy="104" rx="25" ry="31" fill="#6a6690"/>
+      <path d="M46 56 l-9 -24 l22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
+      <path d="M110 56 l9 -24 l-22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
+      <circle cx="62" cy="83" r="17" fill="#fff"/>
+      <circle cx="94" cy="83" r="17" fill="#fff"/>
+      <circle cx="62" cy="83" r="7.5" fill="#1C1A22"/>
+      <circle cx="94" cy="83" r="7.5" fill="#1C1A22"/>
+      <circle cx="59" cy="80" r="2.6" fill="#FBE08A"/>
+      <circle cx="91" cy="80" r="2.6" fill="#FBE08A"/>
+      <path d="M78 92 l-8 12 l16 0 z" fill="#E0A33A"/>
+      <path d="M64 141 v9 M70 141 v9 M86 141 v9 M92 141 v9" stroke="#E0A33A" stroke-width="3" stroke-linecap="round"/>
+      <circle class="owl-lid" cx="62" cy="83" r="17.5" fill="#4a4664"/>
+      <circle class="owl-lid" cx="94" cy="83" r="17.5" fill="#4a4664"/>
+    </g>
+  </svg>
+</div>
+
+<!-- rough marker filter -->
+<svg width="0" height="0" style="position:absolute"><defs>
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G"/></filter>
+</defs></svg>
+
+<header class="mast">
+  <div class="wrap mast-inner">
+    <a class="brand" href="/" style="text-decoration:none">moonlit ✷</a>
+    <nav><ul>
+      <li><a href="/#wall">Stories</a></li>
+      <li><a href="/#wall">Incidents</a></li>
+      <li><a href="/#wall">Late nights</a></li>
+      <li><a href="/#sub">About</a></li>
+    </ul></nav>
+    <button class="theme-btn" id="themeBtn">☾ night</button>
+  </div>
+</header>
+
+<slot />
+
+<footer>
+  <a class="brand" href="/" style="text-decoration:none">moonlit ✷</a>
+  <p>written by hand · read by lamplight · 2026</p>
+  <p style="margin-top:8px;font-family:var(--grotesk);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)">Created by <span style="color:var(--pink)">Darshan</span></p>
+</footer>
+
+<script is:inline>
+  const themeBtn=document.getElementById('themeBtn');
+  themeBtn.onclick=()=>{
+    const night=document.body.getAttribute('data-theme')==='night';
+    document.body.setAttribute('data-theme',night?'day':'night');
+    themeBtn.textContent=night?'☾ night':'☀ day';
+  };
+  const prog=document.getElementById('progress');
+  window.addEventListener('scroll',()=>{const h=document.documentElement;
+    prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+  const rvEls=document.querySelectorAll('.rv');
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:0,rootMargin:'0px 0px -8% 0px'});
+    rvEls.forEach(el=>io.observe(el));
+    const revealVisible=()=>rvEls.forEach(el=>{const r=el.getBoundingClientRect();if(r.top<innerHeight&&r.bottom>0)el.classList.add('in');});
+    addEventListener('load',revealVisible);revealVisible();
+  }else{rvEls.forEach(el=>el.classList.add('in'));}
+
+  /* ── marker trail that follows the cursor & fades when you stop ── */
+  (function(){
+    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const c=document.getElementById('trail');
+    if(!c||reduce)return;
+    const x=c.getContext('2d');
+    let pts=[],dpr=1;
+    function size(){
+      dpr=Math.min(window.devicePixelRatio||1,2);
+      c.width=innerWidth*dpr;c.height=innerHeight*dpr;
+      c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';
+      x.setTransform(dpr,0,0,dpr,0,0);
+    }
+    size();addEventListener('resize',size);
+    function inkColor(){return document.body.getAttribute('data-theme')==='night'?'#EF85AE':'#E5147B';}
+    addEventListener('pointermove',e=>{
+      if(e.pointerType && e.pointerType!=='mouse')return;
+      pts.push({x:e.clientX,y:e.clientY,t:performance.now()});
+    },{passive:true});
+    const LIFE=360, MAXLEN=230;
+    function draw(){
+      x.clearRect(0,0,innerWidth,innerHeight);
+      const now=performance.now();
+      pts=pts.filter(p=>now-p.t<LIFE);
+      let acc=0,cut=0;
+      for(let i=pts.length-1;i>0;i--){
+        acc+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].y-pts[i-1].y);
+        if(acc>MAXLEN){cut=i;break;}
+      }
+      if(cut>0)pts=pts.slice(cut);
+      if(pts.length>1){
+        x.lineCap='round';x.lineJoin='round';x.lineWidth=5;
+        x.strokeStyle=inkColor();x.globalAlpha=.95;
+        x.beginPath();x.moveTo(pts[0].x,pts[0].y);
+        for(let i=1;i<pts.length-1;i++){
+          const mx=(pts[i].x+pts[i+1].x)/2,my=(pts[i].y+pts[i+1].y)/2;
+          x.quadraticCurveTo(pts[i].x,pts[i].y,mx,my);
+        }
+        x.lineTo(pts[pts.length-1].x,pts[pts.length-1].y);
+        x.stroke();x.globalAlpha=1;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  /* ── night ambience + interactivity: fireflies (scatter), eye-follow, owl reactions ── */
+  (function(){
+    const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const box=document.getElementById('fireflies');
+    const ff=[];
+    if(box && !reduce){
+      const N=innerWidth<680?10:18;
+      for(let i=0;i<N;i++){
+        const f=document.createElement('span');f.className='firefly';
+        const s=(3+Math.random()*4).toFixed(1);
+        f.style.left=(Math.random()*100)+'vw';
+        f.style.top=(8+Math.random()*82)+'vh';
+        f.style.width=s+'px';f.style.height=s+'px';
+        f.style.setProperty('--dx',(Math.random()*120-60).toFixed(0)+'px');
+        f.style.setProperty('--dy',(Math.random()*120-60).toFixed(0)+'px');
+        f.style.setProperty('--dur',(12+Math.random()*12).toFixed(1)+'s');
+        f.style.animationDelay=(-Math.random()*16).toFixed(1)+'s';
+        const dot=document.createElement('i');
+        dot.style.setProperty('--tw',(2+Math.random()*3).toFixed(1)+'s');
+        dot.style.animationDelay=(-Math.random()*5).toFixed(1)+'s';
+        f.appendChild(dot);box.appendChild(f);ff.push(f);
+      }
+    }
+    const eyeSvg=document.querySelector('.eye-d');
+    const eyeBall=eyeSvg&&eyeSvg.querySelector('.eye-ball');
+    const owl=document.querySelector('.owl-perch');
+    let mx=innerWidth/2,my=innerHeight/2,moved=false,owlCool=0;
+    const night=()=>document.body.getAttribute('data-theme')==='night';
+    addEventListener('pointermove',e=>{if(e.pointerType&&e.pointerType!=='mouse')return;mx=e.clientX;my=e.clientY;moved=true;},{passive:true});
+    function tick(){
+      if(moved){
+        moved=false;
+        if(eyeBall){
+          const r=eyeSvg.getBoundingClientRect();
+          const cx=r.left+r.width/2, cy=r.top+r.height/2;
+          const dx=mx-cx, dy=my-cy;
+          if(Math.hypot(dx,dy)<200){
+            const ex=Math.max(-1,Math.min(1,dx/130)), ey=Math.max(-1,Math.min(1,dy/130));
+            eyeBall.setAttribute('transform','translate('+(ex*13).toFixed(1)+','+(ey*5).toFixed(1)+')');
+          }else{
+            eyeBall.setAttribute('transform','translate(0,0)');
+          }
+        }
+        if(night() && !reduce){
+          for(const f of ff){
+            const dot=f.firstChild,r=f.getBoundingClientRect();
+            const dx=(r.left+r.width/2)-mx,dy=(r.top+r.height/2)-my,d=Math.hypot(dx,dy);
+            if(d<95){const p=(95-d)/95*42;dot.style.transform='translate('+(dx/(d||1)*p).toFixed(1)+'px,'+(dy/(d||1)*p).toFixed(1)+'px)';}
+            else dot.style.transform='none';
+          }
+          if(owl && !owl.classList.contains('flyaway')){
+            const r=owl.getBoundingClientRect();
+            const d=Math.hypot(mx-(r.left+r.width/2),my-(r.top+r.height/2)),now=performance.now();
+            if(d<155 && now-owlCool>2800){
+              owlCool=now;
+              if(Math.random()<0.3){owl.classList.add('flyaway');setTimeout(()=>owl.classList.remove('flyaway'),3400);}
+              else{owl.classList.add('startle');setTimeout(()=>owl.classList.remove('startle'),1000);}
+            }
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+---
+// Maps Silky's "doodle" choice to the matching hand-drawn SVG (same marks as the original design).
+const { name = 'star', size = 84 } = Astro.props;
+---
+{name === 'moon' && (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="var(--blue)"><path d="M64 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/></svg>
+)}
+{name === 'star' && (
+  <svg width={size} height={size} viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+)}
+{name === 'eye' && (
+  <svg width={size} height={size * 0.62} viewBox="0 0 120 70" fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round">
+    <path d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z"/>
+    <circle cx="60" cy="36" r="15" fill="var(--pink)"/><circle cx="60" cy="36" r="6" fill="#16161D"/><circle cx="55" cy="31" r="2.2" fill="#fff"/>
+  </svg>
+)}
+{name === 'heart' && (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="var(--pink)"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
+)}
+{name === 'sun' && (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
+    <circle cx="50" cy="50" r="16" fill="var(--pink)"/>
+    <g stroke="var(--pink)"><path d="M50 8v14M50 78v14M8 50h14M78 50h14M20 20l10 10M70 70l10 10M80 20l-10 10M30 70l-10 10"/></g>
+  </svg>
+)}
