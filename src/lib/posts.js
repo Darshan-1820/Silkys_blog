@@ -56,6 +56,12 @@ export async function getPostBySlug(db, slug) {
   return row ? toPost(row) : null;
 }
 
+// Preview: one post by slug regardless of status (draft or published).
+export async function getPostForPreview(db, slug) {
+  const row = await db.prepare('SELECT * FROM posts WHERE slug = ?1').bind(slug).first();
+  return row ? toPost(row) : null;
+}
+
 // Admin: every post (drafts + published), newest activity first.
 export async function getPostsForAdmin(db) {
   const { results } = await db

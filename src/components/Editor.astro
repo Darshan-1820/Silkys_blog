@@ -27,6 +27,7 @@ const status = p.status || 'draft';
       <span id="state-chip" class="chip">draft</span>
       <span id="save-status" class="save-status"></span>
       <button class="btn ghost only-mobile" type="button" id="btn-details">✎ details</button>
+      <button class="btn ghost" type="button" id="btn-preview">preview ↗</button>
       <button class="btn" type="button" id="btn-publish">publish ✷</button>
     </div>
   </div>
@@ -494,6 +495,12 @@ const status = p.status || 'draft';
   unpub.addEventListener('click', async () => {
     const ok = await doSave('draft');
     if (ok) toast('moved to draft');
+  });
+
+  // preview: save (keeping current status), then open the real blog page in preview mode
+  $('btn-preview').addEventListener('click', async () => {
+    const ok = await doSave();
+    if (ok && slug) window.open(`/blog/${slug}?preview`, '_blank');
   });
 
   // --- delete ---

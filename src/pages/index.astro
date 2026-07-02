@@ -2,12 +2,17 @@
 import Base from '../layouts/Base.astro';
 import SectionRenderer from '../components/SectionRenderer.astro';
 import { getAllPosts } from '../lib/posts.js';
-import { getSections } from '../lib/sections.js';
+import { getSections, getSectionsForAdmin } from '../lib/sections.js';
+import { isAuthed } from '../lib/auth.js';
 
 const { DB } = Astro.locals.runtime.env;
-const [posts, sections] = await Promise.all([getAllPosts(DB), getSections(DB)]);
+const preview = Astro.url.searchParams.has('preview') && (await isAuthed(Astro));
+const [posts, sections] = await Promise.all([
+  getAllPosts(DB),
+  preview ? getSectionsForAdmin(DB) : getSections(DB),
+]);
 ---
-<Base>
+<Base preview={preview}>
 <main id="home">
   {sections.map((section) => <SectionRenderer section={section} posts={posts} />)}
 

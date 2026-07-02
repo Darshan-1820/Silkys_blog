@@ -109,6 +109,13 @@ export function clearCookie({ secure = true } = {}) {
 // Returns a Response (redirect / 401) when unauthorized, else null.
 // (We use this instead of src/middleware.js because the project path contains an
 //  apostrophe, which breaks Astro's middleware virtual-module loader.)
+// True if the request carries a valid session (used to gate preview mode).
+export async function isAuthed(context) {
+  const secret = context.locals?.runtime?.env?.SESSION_SECRET || '';
+  const token = context.cookies.get(SESSION_COOKIE)?.value;
+  return verifySession(secret, token);
+}
+
 export async function guard(context, { api = false } = {}) {
   const secret = context.locals?.runtime?.env?.SESSION_SECRET || '';
   const token = context.cookies.get(SESSION_COOKIE)?.value;

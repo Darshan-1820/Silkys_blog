@@ -33,6 +33,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
     <div class="row">
       <span id="save-status" class="save-status"></span>
       <label class="show-toggle"><input type="checkbox" id="f-show" checked={section.status === 'published'} /> <span>show on homepage</span></label>
+      <button class="btn ghost" type="button" id="btn-preview">preview ↗</button>
       <button class="btn" type="button" id="btn-save">save</button>
     </div>
   </div>
@@ -376,8 +377,14 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
     setStatus('saving…');
     const r = await fetch(`/api/sections/${id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
     if (r.ok) setStatus('saved ✓', 'ok'); else setStatus("couldn't save", 'err');
+    return r.ok;
   }
   $('btn-save').addEventListener('click', save);
+
+  // preview: save the section, then open the homepage in preview mode (drafts visible)
+  $('btn-preview').addEventListener('click', async () => {
+    if (await save()) window.open('/?preview', '_blank');
+  });
 
   $('btn-delete').addEventListener('click', async () => {
     if (!confirm('delete this section for good?')) return;

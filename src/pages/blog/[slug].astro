@@ -1,11 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Doodle from '../../components/Doodle.astro';
-import { getAllPosts, getPostBySlug } from '../../lib/posts.js';
+import { getAllPosts, getPostBySlug, getPostForPreview } from '../../lib/posts.js';
+import { isAuthed } from '../../lib/auth.js';
 
 const { DB } = Astro.locals.runtime.env;
 const { slug } = Astro.params;
-const post = await getPostBySlug(DB, slug);
+const preview = Astro.url.searchParams.has('preview') && (await isAuthed(Astro));
+const post = preview ? await getPostForPreview(DB, slug) : await getPostBySlug(DB, slug);
 
 // Unknown or unpublished slug -> proper 404 (good for SEO, avoids blank pages).
 if (!post) return new Response(null, { status: 404 });

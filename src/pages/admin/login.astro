@@ -2,7 +2,7 @@
 import Admin from '../../layouts/Admin.astro';
 const hasError = Astro.url.searchParams.has('error');
 ---
-<Admin title="sign in">
+<Admin title="sign in" showNav={false}>
 <div class="login-screen">
   <div class="login-card">
     <span class="tape lt"></span>

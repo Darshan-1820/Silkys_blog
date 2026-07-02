@@ -21,9 +21,7 @@ const published = posts.filter((p) => p.status === 'published');
       <p class="adm-sub">{posts.length} {posts.length === 1 ? 'piece' : 'pieces'} · <a class="link" href="/" target="_blank">view your blog ↗</a></p>
     </div>
     <div class="desk-actions">
-      <a class="btn ghost" href="/admin/home">▤ your homepage</a>
       <a class="btn" href="/admin/new">✎ new piece</a>
-      <form method="post" action="/api/logout"><button class="btn ghost" type="submit">sign out</button></form>
     </div>
   </header>
 

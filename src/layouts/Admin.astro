@@ -1,6 +1,9 @@
 ---
 import '../styles/global.css';
-const { title = 'the writing desk' } = Astro.props;
+const { title = 'the writing desk', showNav = true } = Astro.props;
+const path = Astro.url.pathname;
+const isDesk = path === '/admin' || path === '/admin/';
+const isHome = path.startsWith('/admin/home') || path.startsWith('/admin/section');
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -14,7 +17,16 @@ const { title = 'the writing desk' } = Astro.props;
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style is:global>
   body{min-height:100vh;background-image:linear-gradient(rgba(43,40,120,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(43,40,120,.06) 1px,transparent 1px);background-size:26px 26px}
-  .desk{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+  .admin-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    padding:11px 22px;border-bottom:2.5px dashed rgba(34,34,201,.3);max-width:1120px;margin:0 auto}
+  .an-brand{font-family:var(--marker);font-size:1.5rem;color:var(--ink);text-decoration:none;white-space:nowrap}
+  .an-brand span{color:var(--pink)}
+  .an-links{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .an-links a,.an-links button{font-family:var(--type);font-size:.85rem;color:var(--ink);text-decoration:none;
+    padding:6px 12px;border:2px solid transparent;cursor:pointer;background:none;line-height:1}
+  .an-links a:hover,.an-links button:hover{border-color:var(--ink)}
+  .an-links a.on{background:var(--ink);color:var(--paper)}
+  .desk{max-width:900px;margin:0 auto;padding:32px 24px 80px}
   .desk.narrow{max-width:460px;display:flex;flex-direction:column;justify-content:center;min-height:100vh}
   .panel{position:relative;background:var(--card);border:3px solid var(--ink);
     box-shadow:6px 9px 0 rgba(34,34,201,.16);padding:34px 30px}
@@ -49,6 +61,17 @@ const { title = 'the writing desk' } = Astro.props;
 </style>
 </head>
 <body data-theme="day">
+{showNav && (
+  <nav class="admin-nav">
+    <a class="an-brand" href="/admin">moonlit<span> · studio</span></a>
+    <div class="an-links">
+      <a href="/admin" class={isDesk ? 'on' : ''}>✎ the desk</a>
+      <a href="/admin/home" class={isHome ? 'on' : ''}>▤ your homepage</a>
+      <a href="/" target="_blank" rel="noopener">view site ↗</a>
+      <form method="post" action="/api/logout"><button type="submit">sign out</button></form>
+    </div>
+  </nav>
+)}
 <slot />
 </body>
 </html>
