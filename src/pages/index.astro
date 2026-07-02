@@ -1,123 +1,17 @@
 ---
 import Base from '../layouts/Base.astro';
-import Doodle from '../components/Doodle.astro';
+import SectionRenderer from '../components/SectionRenderer.astro';
 import { getAllPosts } from '../lib/posts.js';
+import { getSections } from '../lib/sections.js';
 
 const { DB } = Astro.locals.runtime.env;
-const posts = await getAllPosts(DB);
-const featured = posts.find((p) => p.featured) || posts[0] || null;
-const count = posts.length;
+const [posts, sections] = await Promise.all([getAllPosts(DB), getSections(DB)]);
 ---
 <Base>
 <main id="home">
-  <!-- HERO -->
-  <section class="hero wrap">
-    <svg class="doodle" style="top:-4px;left:-48px;width:86px;height:86px;transform:rotate(-16deg)" viewBox="0 0 100 100" fill="var(--blue)" stroke="none">
-      <path d="M62 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/>
-    </svg>
-    <svg class="doodle" style="top:18px;left:104px;width:44px;height:44px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
-    <svg class="doodle d-heart" style="bottom:-18px;left:24px;width:50px;height:50px;transform:rotate(-12deg)" viewBox="0 0 100 100" fill="var(--pink)"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
+  {sections.map((section) => <SectionRenderer section={section} posts={posts} />)}
 
-    <svg class="doodle eye-d" style="top:320px;right:40px;width:118px;height:70px;transform:rotate(-4deg)" viewBox="0 0 120 70">
-      <path d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round"/>
-      <g class="eye-ball">
-        <circle cx="60" cy="36" r="15" fill="var(--pink)"/>
-        <circle cx="60" cy="36" r="6" fill="#16161D"/>
-        <circle cx="55" cy="31" r="2.2" fill="#fff"/>
-      </g>
-      <g fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round">
-        <path d="M88 16 l6 -7 M60 6 v-7 M32 16 l-6 -7"/>
-      </g>
-      <path class="lid" d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="var(--paper)" stroke="var(--blue)" stroke-width="3.2"/>
-    </svg>
-
-    <div class="radio-wrap rv">
-      <span class="lyr l1">♪ moonlit nights</span>
-      <span class="lyr l2">strangely empty</span>
-      <span class="lyr l3">no answer ♫</span>
-      <svg class="radio" viewBox="0 0 210 162" fill="none" stroke-linecap="round">
-        <line x1="158" y1="48" x2="192" y2="12" stroke="var(--blue)" stroke-width="3.5"/>
-        <path d="M188 6 l2.5 7 l7.5 1 l-5.5 5 l1.5 7.5 l-6-3.5 l-6 3.5 l1.5-7.5 l-5.5-5 l7.5-1 z" fill="var(--pink)"/>
-        <rect x="16" y="46" width="178" height="100" rx="16" fill="var(--card)" stroke="var(--blue)" stroke-width="4"/>
-        <rect x="30" y="62" width="80" height="68" rx="10" stroke="var(--pink)" stroke-width="3"/>
-        <g stroke="var(--pink)" stroke-width="3">
-          <line x1="44" y1="70" x2="44" y2="122"/><line x1="58" y1="70" x2="58" y2="122"/>
-          <line x1="72" y1="70" x2="72" y2="122"/><line x1="86" y1="70" x2="86" y2="122"/><line x1="100" y1="70" x2="100" y2="122"/>
-        </g>
-        <rect x="124" y="62" width="58" height="34" rx="6" stroke="var(--blue)" stroke-width="3"/>
-        <g stroke="var(--blue)" stroke-width="2" opacity=".6">
-          <line x1="132" y1="68" x2="132" y2="73"/><line x1="142" y1="68" x2="142" y2="73"/>
-          <line x1="152" y1="68" x2="152" y2="73"/><line x1="162" y1="68" x2="162" y2="73"/><line x1="172" y1="68" x2="172" y2="73"/>
-        </g>
-        <line x1="150" y1="64" x2="150" y2="94" stroke="var(--pink)" stroke-width="3"/>
-        <circle cx="138" cy="120" r="10" fill="var(--blue)"/>
-        <circle cx="168" cy="120" r="10" fill="var(--pink)"/>
-        <line x1="42" y1="146" x2="42" y2="156" stroke="var(--blue)" stroke-width="4"/>
-        <line x1="168" y1="146" x2="168" y2="156" stroke="var(--blue)" stroke-width="4"/>
-      </svg>
-      <div class="np-tag">▸ now playing — <b>TV Girl</b></div>
-    </div>
-
-    {featured ? (
-      <>
-        <span class="eyebrow" style="margin-left:52px">featured · this week ↓</span>
-        <h1>{featured.title}</h1>
-        <svg class="scribble" viewBox="0 0 340 16" preserveAspectRatio="none"><path d="M4 11 q40 -9 80 -3 q50 7 96 -2 q56 -10 104 1 q30 6 52 -1"/></svg>
-        <p class="sub">{featured.excerpt}</p>
-        <div class="meta">
-          <span class="pill ink">{featured.categoryLabel}</span>
-          <span class="pill">{featured.readTime} min</span>
-          {featured.song && <span class="pill">scored to {featured.song}</span>}
-        </div>
-        <span style="position:relative;display:inline-block">
-          <a class="read-cta" href={`/blog/${featured.slug}`} style="display:inline-block;text-decoration:none">read it →</a>
-          <svg class="scatter" style="left:calc(100% + 6px);top:16px;width:92px;height:58px" viewBox="0 0 120 80" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M112 20 Q58 28 14 46"/>
-            <path d="M14 46 l20 3 M14 46 l12 -16"/>
-          </svg>
-          <span class="hand" style="position:absolute;left:calc(100% + 98px);top:28px;color:var(--pink);font-size:1.15rem;transform:rotate(-4deg);white-space:nowrap">go on...</span>
-        </span>
-      </>
-    ) : (
-      <>
-        <span class="eyebrow" style="margin-left:52px">a place for stories ↓</span>
-        <h1>moonlit</h1>
-        <p class="sub">the first story is being scribbled. check back soon.</p>
-      </>
-    )}
-  </section>
-
-  <!-- STORY WALL -->
-  <div class="wrap" id="wall">
-    <svg class="scatter" style="right:-46px;top:-20px;width:130px;height:130px;z-index:0" viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
-      <circle cx="50" cy="50" r="15" fill="var(--pink)"/>
-      <g stroke="var(--pink)"><path d="M50 6v15M50 79v15M6 50h15M79 50h15M19 19l11 11M70 70l11 11M81 19l-11 11M30 70l-11 11"/></g>
-      <path d="M50 43 a7 7 0 1 1 -5 11" stroke="#fff" stroke-width="2.5"/>
-    </svg>
-    <svg class="scatter" style="left:38%;top:-26px;width:26px;height:26px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
-    <div class="sec-head rv"><h2>the wall</h2><span class="line"></span><span class="sticker" style="font-size:.9rem">{count} {count === 1 ? 'piece' : 'pieces'}</span></div>
-    <div class="wall">
-      {posts.map((p) => (
-        <a class="pin rv" href={`/blog/${p.slug}`} style="text-decoration:none;display:block">
-          <span class="tapebit"></span>
-          <div class="thumb"><Doodle name={p.doodle} size={88} /></div>
-          <h3>{p.title}</h3>
-          <p class="ex">{p.excerpt}</p>
-          <div class="foot"><span class="sticker" style="font-size:.72rem">{p.categoryLabel}</span><span class="rt">{p.readTime} min</span></div>
-        </a>
-      ))}
-    </div>
-  </div>
-
-  <!-- QUOTE SPREAD -->
-  <section class="spread wrap rv">
-    <svg class="doodle" style="top:40px;left:6%;width:70px;height:70px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
-    <svg class="doodle" style="bottom:40px;right:8%;width:54px;height:54px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
-    <blockquote>If I was the moon, would you still look for the stars?</blockquote>
-    <div class="by">— from the margins of an old notebook</div>
-  </section>
-
-  <!-- SUBSCRIBE -->
+  <!-- SUBSCRIBE (site feature, always at the foot) -->
   <section class="wrap" id="sub">
     <span class="tape" style="top:-13px;left:60px;transform:rotate(-6deg)"></span>
     <span class="tape" style="top:-13px;right:80px;transform:rotate(7deg)"></span>

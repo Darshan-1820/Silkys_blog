@@ -1,0 +1,42 @@
+---
+const { section } = Astro.props;
+const items = (section.data && section.data.items) || [];
+const design = section.design || 'polaroid';
+---
+<section class="wrap gallery-sec rv">
+  <div class="sec-head"><h2>{section.heading || 'a little gallery'}</h2><span class="line"></span>
+    {section.subhead && <span class="sticker" style="font-size:.82rem">{section.subhead}</span>}
+  </div>
+
+  {items.length === 0 ? (
+    <p class="sec-empty">no pictures pinned up yet…</p>
+  ) : (
+    <div class={`gal gal-${design}`}>
+      {items.map((it) => (
+        <figure class="shot">
+          <span class="tapebit"></span>
+          <img src={it.img_url} alt={it.caption || ''} loading="lazy" />
+          {it.caption && <figcaption>{it.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  )}
+</section>
+
+<style>
+  .gallery-sec{margin:64px auto}
+  .sec-empty{font-family:var(--type);color:var(--ink-soft);text-align:center;padding:24px}
+  /* polaroid grid */
+  .gal-polaroid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:30px;margin-top:28px}
+  .gal-polaroid .shot{background:var(--card);border:1px solid rgba(24,22,34,.2);padding:12px 12px 0;box-shadow:4px 8px 18px rgba(0,0,0,.2);margin:0}
+  .gal-polaroid .shot:nth-child(odd){transform:rotate(-1.6deg)} .gal-polaroid .shot:nth-child(3n){transform:rotate(1.8deg)}
+  .gal-polaroid img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+  .gal-polaroid figcaption{font-family:var(--marker);font-size:1.15rem;color:var(--ink);text-align:center;padding:8px 4px 12px}
+  /* film strip */
+  .gal-strip{display:flex;gap:14px;overflow-x:auto;padding:26px 4px 16px;margin-top:14px;scroll-snap-type:x mandatory}
+  .gal-strip .shot{flex:0 0 auto;width:260px;background:var(--ink);padding:14px 10px;margin:0;scroll-snap-align:start;
+    border-top:3px dashed rgba(255,255,255,.3);border-bottom:3px dashed rgba(255,255,255,.3)}
+  .gal-strip img{width:100%;height:200px;object-fit:cover;display:block}
+  .gal-strip figcaption{font-family:var(--type);font-size:.82rem;color:var(--paper);text-align:center;padding-top:8px}
+  .shot{position:relative}
+</style>

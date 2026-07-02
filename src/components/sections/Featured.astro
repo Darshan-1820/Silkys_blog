@@ -1,0 +1,113 @@
+---
+import { songEmbed } from '../../lib/song.js';
+const { section, posts } = Astro.props;
+const d = section.data || {};
+const featured =
+  d.mode === 'pick' && d.postId
+    ? posts.find((p) => String(p.id) === String(d.postId)) || null
+    : posts.find((p) => p.featured) || posts[0] || null;
+
+const song = d.song || (featured && featured.song) || '';
+const songUrl = d.songUrl || (featured && featured.songUrl) || '';
+const lyrics = (d.lyrics || []).filter(Boolean);
+const shownLyrics = lyrics.length ? lyrics.slice(0, 3) : ['moonlit nights', 'strangely empty', 'no answer'];
+const embed = songEmbed(songUrl);
+---
+<section class="hero wrap">
+  <svg class="doodle" style="top:-4px;left:-48px;width:86px;height:86px;transform:rotate(-16deg)" viewBox="0 0 100 100" fill="var(--blue)" stroke="none"><path d="M62 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/></svg>
+  <svg class="doodle" style="top:18px;left:104px;width:44px;height:44px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+  <svg class="doodle d-heart" style="bottom:-18px;left:24px;width:50px;height:50px;transform:rotate(-12deg)" viewBox="0 0 100 100" fill="var(--pink)"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
+
+  <svg class="doodle eye-d" style="top:320px;right:40px;width:118px;height:70px;transform:rotate(-4deg)" viewBox="0 0 120 70">
+    <path d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round"/>
+    <g class="eye-ball"><circle cx="60" cy="36" r="15" fill="var(--pink)"/><circle cx="60" cy="36" r="6" fill="#16161D"/><circle cx="55" cy="31" r="2.2" fill="#fff"/></g>
+    <g fill="none" stroke="var(--blue)" stroke-width="3.2" stroke-linecap="round"><path d="M88 16 l6 -7 M60 6 v-7 M32 16 l-6 -7"/></g>
+    <path class="lid" d="M5 36 Q60 -4 115 36 Q60 70 5 36 Z" fill="var(--paper)" stroke="var(--blue)" stroke-width="3.2"/>
+  </svg>
+
+  <div
+    class={`radio-wrap rv${embed ? ' playable' : ''}`}
+    id="radio-wrap"
+    data-embed={embed ? embed.src : ''}
+    data-h={embed ? String(embed.height) : ''}
+    role={embed ? 'button' : undefined}
+    tabindex={embed ? '0' : undefined}
+    aria-label={embed ? `play ${song || 'the song'}` : undefined}
+  >
+    {shownLyrics.map((line, i) => <span class={`lyr l${i + 1}`}>{i === 0 ? '♪ ' : ''}{line}{i === shownLyrics.length - 1 ? ' ♫' : ''}</span>)}
+    <svg class="radio" viewBox="0 0 210 162" fill="none" stroke-linecap="round">
+      <line x1="158" y1="48" x2="192" y2="12" stroke="var(--blue)" stroke-width="3.5"/>
+      <path d="M188 6 l2.5 7 l7.5 1 l-5.5 5 l1.5 7.5 l-6-3.5 l-6 3.5 l1.5-7.5 l-5.5-5 l7.5-1 z" fill="var(--pink)"/>
+      <rect x="16" y="46" width="178" height="100" rx="16" fill="var(--card)" stroke="var(--blue)" stroke-width="4"/>
+      <rect x="30" y="62" width="80" height="68" rx="10" stroke="var(--pink)" stroke-width="3"/>
+      <g stroke="var(--pink)" stroke-width="3"><line x1="44" y1="70" x2="44" y2="122"/><line x1="58" y1="70" x2="58" y2="122"/><line x1="72" y1="70" x2="72" y2="122"/><line x1="86" y1="70" x2="86" y2="122"/><line x1="100" y1="70" x2="100" y2="122"/></g>
+      <rect x="124" y="62" width="58" height="34" rx="6" stroke="var(--blue)" stroke-width="3"/>
+      <g stroke="var(--blue)" stroke-width="2" opacity=".6"><line x1="132" y1="68" x2="132" y2="73"/><line x1="142" y1="68" x2="142" y2="73"/><line x1="152" y1="68" x2="152" y2="73"/><line x1="162" y1="68" x2="162" y2="73"/><line x1="172" y1="68" x2="172" y2="73"/></g>
+      <line x1="150" y1="64" x2="150" y2="94" stroke="var(--pink)" stroke-width="3"/>
+      <circle cx="138" cy="120" r="10" fill="var(--blue)"/><circle cx="168" cy="120" r="10" fill="var(--pink)"/>
+      <line x1="42" y1="146" x2="42" y2="156" stroke="var(--blue)" stroke-width="4"/><line x1="168" y1="146" x2="168" y2="156" stroke="var(--blue)" stroke-width="4"/>
+    </svg>
+    {embed && <span class="radio-play" id="radio-play">▸ tap to play</span>}
+    <div class="np-tag">{song ? <>♪ scored to <b>{song}</b></> : <>♪ the radio is quiet</>}</div>
+    {embed && <div class="player-panel" id="player-panel" hidden></div>}
+  </div>
+
+  {featured ? (
+    <>
+      <span class="eyebrow" style="margin-left:52px">{section.subhead || 'featured · this week'} ↓</span>
+      <h1>{featured.title}</h1>
+      <svg class="scribble" viewBox="0 0 340 16" preserveAspectRatio="none"><path d="M4 11 q40 -9 80 -3 q50 7 96 -2 q56 -10 104 1 q30 6 52 -1"/></svg>
+      <p class="sub">{featured.excerpt}</p>
+      <div class="meta">
+        <span class="pill ink">{featured.categoryLabel}</span>
+        <span class="pill">{featured.readTime} min</span>
+        {song && <span class="pill">scored to {song}</span>}
+      </div>
+      <span style="position:relative;display:inline-block">
+        <a class="read-cta" href={`/blog/${featured.slug}`} style="display:inline-block;text-decoration:none">read it →</a>
+        <svg class="scatter" style="left:calc(100% + 6px);top:16px;width:92px;height:58px" viewBox="0 0 120 80" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M112 20 Q58 28 14 46"/><path d="M14 46 l20 3 M14 46 l12 -16"/></svg>
+        <span class="hand" style="position:absolute;left:calc(100% + 98px);top:28px;color:var(--pink);font-size:1.15rem;transform:rotate(-4deg);white-space:nowrap">go on...</span>
+      </span>
+    </>
+  ) : (
+    <>
+      <span class="eyebrow" style="margin-left:52px">a place for stories ↓</span>
+      <h1>moonlit</h1>
+      <p class="sub">the first story is being scribbled. check back soon.</p>
+    </>
+  )}
+</section>
+
+{embed && (
+  <script is:inline>
+    (() => {
+      const wrap = document.getElementById('radio-wrap');
+      const panel = document.getElementById('player-panel');
+      const tag = document.getElementById('radio-play');
+      if (!wrap || !panel) return;
+      let open = false;
+      function toggle() {
+        open = !open;
+        if (open) {
+          if (!panel.firstChild) {
+            const f = document.createElement('iframe');
+            f.src = wrap.dataset.embed + '?autoplay=1';
+            f.width = '100%'; f.height = wrap.dataset.h || '152'; f.loading = 'lazy'; f.style.border = '0';
+            f.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture';
+            f.setAttribute('allowfullscreen', '');
+            panel.appendChild(f);
+          }
+          panel.hidden = false; wrap.classList.add('spinning');
+          if (tag) tag.textContent = '❚❚ playing';
+        } else {
+          panel.hidden = true;
+          const f = panel.firstChild; if (f) f.src = f.src;
+          wrap.classList.remove('spinning');
+          if (tag) tag.textContent = '▸ tap to play';
+        }
+      }
+      wrap.addEventListener('click', (e) => { if (e.target.closest('#player-panel')) return; toggle(); });
+      wrap.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    })();
+  </script>
+)}

@@ -1,0 +1,13 @@
+---
+import Featured from './sections/Featured.astro';
+import StoryWall from './sections/StoryWall.astro';
+import Books from './sections/Books.astro';
+import Music from './sections/Music.astro';
+import Gallery from './sections/Gallery.astro';
+import TextBlock from './sections/TextBlock.astro';
+
+const { section, posts } = Astro.props;
+const map = { featured: Featured, story_wall: StoryWall, books: Books, music: Music, gallery: Gallery, text: TextBlock };
+const Cmp = map[section.type];
+---
+{Cmp && <Cmp section={section} posts={posts} />}

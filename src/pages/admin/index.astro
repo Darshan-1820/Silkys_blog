@@ -18,6 +18,7 @@ const SECTION_LABEL = { blog: 'blog', diary: 'digital diary', short_story: 'shor
       <div class="adm-sub">{posts.length} {posts.length === 1 ? 'piece' : 'pieces'} · <a class="link" href="/" target="_blank">view the blog ↗</a></div>
     </div>
     <div class="row">
+      <a class="btn ghost" href="/admin/home">▤ your homepage</a>
       <a class="btn" href="/admin/new">+ new piece</a>
       <form method="post" action="/api/logout"><button class="btn ghost" type="submit">sign out</button></form>
     </div>

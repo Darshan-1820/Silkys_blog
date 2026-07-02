@@ -12,7 +12,5 @@ const post = await getPostById(DB, Number(Astro.params.id));
 if (!post) return Astro.redirect('/admin');
 ---
 <Admin title={`editing — ${post.title}`}>
-<div class="desk">
   <Editor post={post} />
-</div>
 </Admin>

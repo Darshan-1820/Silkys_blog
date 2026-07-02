@@ -1,0 +1,55 @@
+---
+const { section } = Astro.props;
+const items = (section.data && section.data.items) || [];
+const design = section.design || 'covers';
+---
+<section class="wrap books-sec rv">
+  <div class="sec-head"><h2>{section.heading || "what i'm reading"}</h2><span class="line"></span>
+    {section.subhead && <span class="sticker" style="font-size:.82rem">{section.subhead}</span>}
+  </div>
+
+  {items.length === 0 ? (
+    <p class="sec-empty">a shelf waiting to be filled…</p>
+  ) : design === 'list' ? (
+    <ol class="book-list">
+      {items.map((b, i) => (
+        <li>
+          <span class="num">{i + 1}</span>
+          {b.cover_url && <img src={b.cover_url} alt="" class="mini-cover" />}
+          <div><b class="bt">{b.title}</b>{b.author && <span class="ba"> — {b.author}</span>}{b.note && <div class="bn">"{b.note}"</div>}</div>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <div class="book-grid">
+      {items.map((b) => (
+        <div class="book-card">
+          <span class="tapebit"></span>
+          {b.cover_url ? <img src={b.cover_url} alt={b.title} class="bcover" /> : <div class="bcover ph">✦</div>}
+          <b class="bt">{b.title}</b>
+          {b.author && <div class="ba">{b.author}</div>}
+          {b.note && <div class="bn">"{b.note}"</div>}
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+
+<style>
+  .books-sec{margin:64px auto}
+  .sec-empty{font-family:var(--type);color:var(--ink-soft);text-align:center;padding:24px}
+  .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:26px;margin-top:26px}
+  .book-card{position:relative;background:var(--card);border:2px solid var(--ink);padding:16px 14px 14px;text-align:center;
+    box-shadow:4px 6px 0 rgba(34,34,201,.12)}
+  .book-card:nth-child(odd){transform:rotate(-1.2deg)} .book-card:nth-child(3n){transform:rotate(1.4deg)}
+  .bcover{width:100%;aspect-ratio:2/3;object-fit:cover;border:3px solid var(--paper);box-shadow:2px 4px 10px rgba(0,0,0,.22);margin-bottom:10px}
+  .bcover.ph{display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--blue);background:var(--paper)}
+  .bt{font-family:var(--grotesk);font-size:.98rem;line-height:1.2;display:block}
+  .ba{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);margin-top:3px}
+  .bn{font-family:var(--marker);font-size:1rem;color:var(--pink-deep);margin-top:7px;line-height:1.15}
+  .book-list{list-style:none;max-width:680px;margin:26px auto 0;display:flex;flex-direction:column;gap:16px}
+  .book-list li{display:flex;gap:14px;align-items:flex-start;border-bottom:1.5px dashed rgba(24,22,34,.16);padding-bottom:14px}
+  .book-list .num{font-family:var(--sticker);font-size:1.5rem;color:var(--pink);line-height:1;min-width:26px}
+  .mini-cover{width:40px;height:60px;object-fit:cover;border:2px solid var(--paper);box-shadow:1px 2px 6px rgba(0,0,0,.2)}
+  .book-list .bt{font-family:var(--grotesk)} .book-list .bn{font-size:.95rem}
+</style>

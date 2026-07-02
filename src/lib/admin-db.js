@@ -40,12 +40,12 @@ export async function createPost(db, d) {
   const publishedAt = d.status === 'published' ? now : null;
   const res = await db
     .prepare(
-      `INSERT INTO posts (slug,title,section,excerpt,cover_url,body_html,song,doodle,featured,status,published_at,created_at,updated_at)
-       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?12)`
+      `INSERT INTO posts (slug,title,section,excerpt,cover_url,body_html,song,song_url,doodle,featured,status,published_at,created_at,updated_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?13)`
     )
     .bind(
       slug, d.title || 'untitled', d.section || 'blog', d.excerpt || '',
-      d.cover_url || null, d.body_html || '', d.song || '', d.doodle || 'star',
+      d.cover_url || null, d.body_html || '', d.song || '', d.song_url || null, d.doodle || 'star',
       d.featured ? 1 : 0, d.status === 'published' ? 'published' : 'draft', publishedAt, now
     )
     .run();
@@ -64,11 +64,11 @@ export async function updatePost(db, id, d) {
   await db
     .prepare(
       `UPDATE posts SET slug=?1,title=?2,section=?3,excerpt=?4,cover_url=?5,body_html=?6,
-        song=?7,doodle=?8,featured=?9,status=?10,published_at=?11,updated_at=?12 WHERE id=?13`
+        song=?7,song_url=?8,doodle=?9,featured=?10,status=?11,published_at=?12,updated_at=?13 WHERE id=?14`
     )
     .bind(
       slug, d.title || 'untitled', d.section || 'blog', d.excerpt || '',
-      d.cover_url || null, d.body_html || '', d.song || '', d.doodle || 'star',
+      d.cover_url || null, d.body_html || '', d.song || '', d.song_url || null, d.doodle || 'star',
       d.featured ? 1 : 0, d.status === 'published' ? 'published' : 'draft', publishedAt, now, id
     )
     .run();

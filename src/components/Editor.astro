@@ -1,5 +1,5 @@
 ---
-// The writing surface. `post` is a D1 row when editing, or null for a new piece.
+// The studio — Silky's writing space. `post` is a D1 row when editing, else null.
 const { post = null } = Astro.props;
 const SECTIONS = [
   ['blog', 'blog'],
@@ -11,109 +11,205 @@ const SECTIONS = [
 const DOODLES = ['star', 'moon', 'eye', 'heart', 'sun'];
 const p = post || {};
 const bodyHtml = p.body_html || '';
+const status = p.status || 'draft';
 ---
-<div id="editor-root" data-post-id={post ? String(post.id) : ''}>
-  <div class="row" style="justify-content:space-between;margin-bottom:20px">
+<div
+  id="editor-root"
+  class="studio"
+  data-post-id={post ? String(post.id) : ''}
+  data-status={status}
+  data-slug={p.slug || ''}
+>
+  <!-- top bar -->
+  <div class="studio-top">
     <a class="btn ghost" href="/admin">← the desk</a>
-    <div class="row" id="save-bar">
+    <div class="top-right">
+      <span id="state-chip" class="chip">draft</span>
       <span id="save-status" class="save-status"></span>
-      {post && <button class="btn ghost" type="button" id="btn-delete" style="color:var(--pink-deep)">delete</button>}
-      <button class="btn ghost" type="button" data-save="draft">save draft</button>
-      <button class="btn" type="button" data-save="published">publish ✷</button>
+      <button class="btn ghost only-mobile" type="button" id="btn-details">✎ details</button>
+      <button class="btn" type="button" id="btn-publish">publish ✷</button>
     </div>
   </div>
 
-  <div class="panel">
-    <input id="f-title" class="in title-in" type="text" placeholder="title…" value={p.title || ''} />
+  <div class="studio-grid">
+    <!-- writing area -->
+    <div class="studio-main">
+      <!-- margin doodles (decor only) -->
+      <svg class="m-doodle" style="top:70px;left:-38px;width:60px;transform:rotate(-14deg)" viewBox="0 0 60 60" fill="var(--pink)" aria-hidden="true"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+      <svg class="m-doodle" style="bottom:120px;right:-30px;width:52px;transform:rotate(10deg)" viewBox="0 0 100 100" fill="var(--blue)" aria-hidden="true"><path d="M64 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/></svg>
+      <svg class="m-doodle" style="top:280px;right:-26px;width:34px;transform:rotate(-6deg)" viewBox="0 0 100 100" fill="var(--pink)" aria-hidden="true"><path d="M50 84 C6 54 16 14 50 36 C84 14 94 54 50 84 Z"/></svg>
 
-    <div class="meta-grid">
-      <label class="fld"><span>section</span>
-        <select id="f-section" class="in">
-          {SECTIONS.map(([v, l]) => <option value={v} selected={p.section === v}>{l}</option>)}
-        </select>
-      </label>
-      <label class="fld"><span>doodle (the little mark)</span>
-        <select id="f-doodle" class="in">
-          {DOODLES.map((d) => <option value={d} selected={(p.doodle || 'star') === d}>{d}</option>)}
-        </select>
-      </label>
-      <label class="fld"><span>song it's scored to (optional)</span>
-        <input id="f-song" class="in" type="text" value={p.song || ''} placeholder="artist — track" />
-      </label>
-      <label class="fld featured-fld"><span>&nbsp;</span>
-        <label class="check"><input id="f-featured" type="checkbox" checked={!!p.featured} /> feature this on the homepage</label>
-      </label>
-    </div>
+      <input id="f-title" class="title-in" type="text" placeholder="give it a title…" value={p.title || ''} autocomplete="off" />
 
-    <label class="fld"><span>excerpt — the teaser shown on the wall</span>
-      <textarea id="f-excerpt" class="in" rows="2" placeholder="a line or two…">{p.excerpt || ''}</textarea>
-    </label>
-
-    <label class="fld"><span>cover photo (optional)</span></label>
-    <div class="cover-box" id="cover-box" data-url={p.cover_url || ''}>
-      <img id="cover-preview" src={p.cover_url || ''} alt="" style={p.cover_url ? '' : 'display:none'} />
-      <div class="row">
-        <button class="btn ghost small" type="button" id="btn-cover">choose photo…</button>
-        <button class="btn ghost small" type="button" id="btn-cover-remove" style={p.cover_url ? '' : 'display:none'}>remove</button>
-        <input id="cover-input" type="file" accept="image/*" hidden />
+      <div class="toolbar" id="toolbar">
+        <button type="button" data-cmd="h2" title="heading">H2</button>
+        <button type="button" data-cmd="h3" title="small heading">H3</button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="bullet" title="bullet list">• list</button>
+        <button type="button" data-cmd="ordered" title="numbered list">1. list</button>
+        <button type="button" data-cmd="quote" title="quote">❝</button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="image" title="add a photo" class="photo-btn">＋ photo</button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="undo" title="undo">↶</button>
+        <button type="button" data-cmd="redo" title="redo">↷</button>
       </div>
+
+      <div id="editor-mount" class="editor-mount"></div>
+      <template id="body-initial" set:html={bodyHtml}></template>
+
+      <p class="hint-line">tip · select any words to make them <b>bold</b>, <i>italic</i>, or a link. paste straight from Google Docs, or drag a photo onto the page.</p>
     </div>
 
-    <label class="fld"><span>the writing</span></label>
-    <div class="toolbar" id="toolbar">
-      <button type="button" data-cmd="bold" title="bold"><b>B</b></button>
-      <button type="button" data-cmd="italic" title="italic"><i>I</i></button>
-      <span class="sep"></span>
-      <button type="button" data-cmd="h2" title="heading">H2</button>
-      <button type="button" data-cmd="h3" title="small heading">H3</button>
-      <span class="sep"></span>
-      <button type="button" data-cmd="bullet" title="bullet list">• list</button>
-      <button type="button" data-cmd="ordered" title="numbered list">1. list</button>
-      <button type="button" data-cmd="quote" title="quote">❝</button>
-      <span class="sep"></span>
-      <button type="button" data-cmd="link" title="link">link</button>
-      <button type="button" data-cmd="image" title="add photo">＋ photo</button>
-      <span class="sep"></span>
-      <button type="button" data-cmd="undo" title="undo">↶</button>
-      <button type="button" data-cmd="redo" title="redo">↷</button>
-    </div>
-    <div id="editor-mount" class="editor-mount"></div>
-    <template id="body-initial" set:html={bodyHtml}></template>
+    <!-- details sticky note -->
+    <aside class="studio-side" id="studio-side">
+      <div class="note">
+        <span class="note-tape"></span>
+        <div class="note-h">the details</div>
+
+        <label class="nf"><span>which section?</span>
+          <select id="f-section" class="in">
+            {SECTIONS.map(([v, l]) => <option value={v} selected={p.section === v}>{l}</option>)}
+          </select>
+        </label>
+
+        <label class="nf"><span>its little doodle</span>
+          <select id="f-doodle" class="in">
+            {DOODLES.map((d) => <option value={d} selected={(p.doodle || 'star') === d}>{d}</option>)}
+          </select>
+        </label>
+
+        <div class="nf"><span>cover photo</span>
+          <div class="cover-box" id="cover-box" data-url={p.cover_url || ''}>
+            <img id="cover-preview" src={p.cover_url || ''} alt="" style={p.cover_url ? '' : 'display:none'} />
+            <button class="btn ghost small" type="button" id="btn-cover">choose a photo…</button>
+            <button class="btn ghost small" type="button" id="btn-cover-remove" style={p.cover_url ? '' : 'display:none'}>remove</button>
+            <input id="cover-input" type="file" accept="image/*" hidden />
+          </div>
+        </div>
+
+        <label class="nf"><span>the teaser (shown on the wall)</span>
+          <textarea id="f-excerpt" class="in" rows="3" placeholder="a line or two to draw people in…">{p.excerpt || ''}</textarea>
+        </label>
+
+        <label class="nf"><span>song it's scored to</span>
+          <input id="f-song" class="in" type="text" value={p.song || ''} placeholder="artist — track (optional)" />
+        </label>
+
+        <label class="nf"><span>▸ song link — so the radio can play it</span>
+          <input id="f-song-url" class="in" type="url" value={p.song_url || ''} placeholder="paste a Spotify or YouTube link" />
+        </label>
+
+        <label class="check"><input id="f-featured" type="checkbox" checked={!!p.featured} /> <span>feature on the homepage ✷</span></label>
+
+        <div class="note-foot">
+          <a id="link-view" class="note-link" href="#" target="_blank" style="display:none">view it live ↗</a>
+          <button id="btn-unpublish" class="note-link" type="button" style="display:none">move back to draft</button>
+          {post && <button id="btn-delete" class="note-link danger" type="button">delete this piece</button>}
+        </div>
+      </div>
+    </aside>
   </div>
+
+  <!-- selection bubble -->
+  <div id="bubble" class="bubble">
+    <button type="button" data-cmd="bold" title="bold"><b>B</b></button>
+    <button type="button" data-cmd="italic" title="italic"><i>I</i></button>
+    <button type="button" data-cmd="h2" title="heading">H2</button>
+    <button type="button" data-cmd="quote" title="quote">❝</button>
+    <button type="button" data-cmd="link" title="link">🔗</button>
+  </div>
+
+  <!-- toast -->
+  <div id="toast" class="toast"></div>
 </div>
 
 <style is:global>
-  .title-in{font-family:var(--marker);font-size:2.2rem;border:none;border-bottom:2.5px dashed rgba(24,22,34,.3);
-    background:transparent;padding:6px 2px;margin-bottom:8px}
-  .title-in:focus{border-color:var(--pink);box-shadow:none}
-  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
-  @media(max-width:620px){.meta-grid{grid-template-columns:1fr}}
-  .featured-fld{display:flex;align-items:flex-end}
-  .check{display:flex;align-items:center;gap:8px;font-family:var(--type);font-size:.9rem;cursor:pointer;padding-bottom:11px}
-  .check input{width:18px;height:18px;accent-color:var(--pink)}
-  textarea.in{resize:vertical;font-family:var(--type)}
-  .cover-box{border:2px dashed rgba(24,22,34,.3);padding:12px;margin-top:6px}
-  #cover-preview{max-width:100%;max-height:220px;display:block;margin-bottom:10px;border:4px solid var(--card);box-shadow:3px 5px 14px rgba(0,0,0,.18)}
-  .btn.small{padding:7px 13px;font-size:.8rem}
-  .toolbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:2px solid var(--ink);border-bottom:none;background:var(--paper);padding:7px 9px;margin-top:6px}
-  .toolbar button{font-family:var(--type);cursor:pointer;background:transparent;border:1.5px solid transparent;
-    border-radius:3px;padding:4px 9px;font-size:.9rem;color:var(--ink);line-height:1}
-  .toolbar button:hover{border-color:var(--ink)}
+  body:has(.studio){background-image:linear-gradient(rgba(43,40,120,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(43,40,120,.05) 1px,transparent 1px);background-size:26px 26px}
+  .studio{max-width:1120px;margin:0 auto;padding:22px 22px 90px}
+  .studio-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;position:sticky;top:0;z-index:20;
+    background:linear-gradient(var(--paper),var(--paper) 70%,transparent);padding:10px 0}
+  .top-right{display:flex;align-items:center;gap:12px}
+  .chip{font-family:var(--sticker);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#8a8698;padding:3px 11px 4px;transform:rotate(-2deg)}
+  .chip.live{background:var(--blue)}
+  .save-status{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);min-width:78px}
+  .save-status.ok{color:var(--blue-deep)} .save-status.err,.save-status.hint{color:var(--pink-deep)}
+
+  .studio-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:34px;align-items:start}
+  .studio-main{position:relative}
+  .m-doodle{position:absolute;opacity:.5;pointer-events:none;z-index:0}
+  @media(max-width:900px){.m-doodle{display:none}}
+
+  .title-in{width:100%;font-family:var(--marker);font-size:2.7rem;line-height:1.05;color:var(--ink);
+    background:transparent;border:none;border-bottom:2.5px dashed rgba(24,22,34,.28);padding:4px 2px 10px;outline:none;position:relative;z-index:1}
+  .title-in::placeholder{color:rgba(24,22,34,.32)}
+  .title-in:focus{border-color:var(--pink)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:16px 0 0;position:relative;z-index:1}
+  .toolbar button{font-family:var(--type);cursor:pointer;background:var(--card);border:2px solid var(--ink);
+    padding:5px 11px;font-size:.86rem;color:var(--ink);box-shadow:2px 2px 0 rgba(0,0,0,.15);line-height:1;transition:transform .1s,box-shadow .1s}
+  .toolbar button:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(0,0,0,.18)}
+  .toolbar button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(0,0,0,.15)}
   .toolbar button.on{background:var(--blue);color:#fff}
-  .toolbar .sep{width:1px;height:20px;background:rgba(24,22,34,.2);margin:0 4px}
-  .editor-mount{border:2px solid var(--ink);background:var(--card);min-height:340px;padding:20px 22px}
-  .ProseMirror{outline:none;font-family:var(--type);font-size:1.02rem;line-height:1.75;color:var(--ink)}
+  .toolbar .photo-btn{background:var(--pink);color:#fff;border-color:var(--ink)}
+  .toolbar .sep{width:2px;height:20px;background:rgba(24,22,34,.14);margin:0 3px}
+
+  .editor-mount{position:relative;z-index:1;margin-top:14px;min-height:52vh;padding:26px 4px 40px}
+  .ProseMirror{outline:none;font-family:var(--type);font-size:1.08rem;line-height:1.85;color:var(--ink)}
   .ProseMirror:focus{outline:none}
-  .ProseMirror > *+*{margin-top:.85em}
-  .ProseMirror h2{font-family:var(--marker);font-size:1.9rem;line-height:1.1}
-  .ProseMirror h3{font-family:var(--marker);font-size:1.45rem;line-height:1.15}
-  .ProseMirror ul,.ProseMirror ol{padding-left:1.4em}
-  .ProseMirror blockquote{border-left:3px solid var(--pink);padding-left:14px;color:var(--ink-soft);font-style:italic}
-  .ProseMirror img{max-width:100%;height:auto;border:4px solid var(--paper);box-shadow:3px 5px 14px rgba(0,0,0,.18)}
+  .ProseMirror > *+*{margin-top:.9em}
+  .ProseMirror h2{font-family:var(--marker);font-size:2rem;line-height:1.1;color:var(--blue-deep)}
+  .ProseMirror h3{font-family:var(--marker);font-size:1.5rem;line-height:1.15}
+  .ProseMirror ul,.ProseMirror ol{padding-left:1.5em}
+  .ProseMirror blockquote{border-left:3px solid var(--pink);padding-left:16px;color:var(--ink-soft);font-style:italic}
+  .ProseMirror img{max-width:100%;height:auto;border:5px solid var(--card);box-shadow:4px 7px 18px rgba(0,0,0,.2);margin:6px 0}
   .ProseMirror a{color:var(--blue);text-decoration:underline}
-  .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);float:left;color:rgba(24,22,34,.4);pointer-events:none;height:0}
-  .save-status{font-family:var(--type);font-size:.85rem;color:var(--ink-soft)}
-  .save-status.err{color:var(--pink-deep)}
+  .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);float:left;color:rgba(24,22,34,.38);pointer-events:none;height:0;font-style:italic}
+  .hint-line{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);margin-top:22px;border-top:1.5px dashed rgba(24,22,34,.16);padding-top:14px;position:relative;z-index:1}
+
+  /* sticky note */
+  .studio-side{position:sticky;top:74px}
+  .note{position:relative;background:#F6EFC7;border:2px solid rgba(24,22,34,.5);padding:26px 20px 20px;
+    box-shadow:5px 8px 0 rgba(34,34,201,.14);transform:rotate(-.8deg)}
+  [data-theme="night"] .note{background:#3a3730}
+  .note-tape{position:absolute;top:-13px;left:50%;transform:translateX(-50%) rotate(-3deg);width:92px;height:24px;background:var(--tape);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+  .note-h{font-family:var(--marker);font-size:1.5rem;color:var(--ink);margin-bottom:8px}
+  .nf{display:block;margin-top:15px}
+  .nf > span{display:block;font-family:var(--hand);font-size:.76rem;color:var(--blue);margin-bottom:5px}
+  .note .in{width:100%;font-family:var(--type);font-size:.92rem;padding:8px 10px;background:var(--card);border:2px solid var(--ink);color:var(--ink);outline:none}
+  .note .in:focus{border-color:var(--pink)}
+  .note textarea.in{resize:vertical}
+  .cover-box{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  #cover-preview{width:100%;max-height:150px;object-fit:cover;border:4px solid var(--card);box-shadow:2px 4px 10px rgba(0,0,0,.16);margin-bottom:4px}
+  .btn.small{padding:6px 11px;font-size:.76rem;box-shadow:2px 2px 0 rgba(0,0,0,.2)}
+  .note .check{display:flex;align-items:center;gap:9px;font-family:var(--type);font-size:.88rem;cursor:pointer;margin-top:18px}
+  .note .check input{width:18px;height:18px;accent-color:var(--pink);flex:none}
+  .note-foot{margin-top:20px;border-top:1.5px dashed rgba(24,22,34,.25);padding-top:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+  .note-link{font-family:var(--type);font-size:.84rem;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-align:left;border-bottom:1.5px solid transparent}
+  .note-link:hover{border-color:currentColor}
+  .note-link.danger{color:var(--pink-deep)}
+
+  .only-mobile{display:none}
+  @media(max-width:820px){
+    .studio-grid{grid-template-columns:1fr}
+    .studio-side{position:static;margin-top:24px;display:none}
+    .studio-side.open{display:block}
+    .only-mobile{display:inline-block}
+  }
+
+  /* selection bubble */
+  .bubble{position:fixed;z-index:60;display:none;gap:2px;background:var(--ink);padding:4px;border-radius:6px;
+    box-shadow:0 6px 20px rgba(0,0,0,.3);transform:translate(-50%,-118%)}
+  .bubble.show{display:flex}
+  .bubble button{font-family:var(--type);cursor:pointer;background:transparent;border:none;color:#fff;padding:5px 9px;border-radius:4px;font-size:.9rem;line-height:1}
+  .bubble button:hover{background:rgba(255,255,255,.16)}
+  .bubble button.on{background:var(--pink)}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);z-index:70;
+    background:var(--blue);color:#fff;font-family:var(--sticker);letter-spacing:.04em;padding:11px 22px;
+    box-shadow:3px 4px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 
 <script>
@@ -126,22 +222,38 @@ const bodyHtml = p.body_html || '';
   const mount = document.getElementById('editor-mount');
   const initial = document.getElementById('body-initial').innerHTML;
 
-  async function uploadImage(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    const r = await fetch('/api/upload', { method: 'POST', body: fd });
-    if (!r.ok) throw new Error('upload failed');
-    const { url } = await r.json();
-    return url;
+  // --- state ---
+  let postId = root.dataset.postId || '';
+  let status = root.dataset.status || 'draft';
+  let slug = root.dataset.slug || '';
+  let saving = false;
+  let saveTimer = null;
+  let lastSnap = '';
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $('save-status');
+  function setStatus(msg, cls) { statusEl.textContent = msg; statusEl.className = 'save-status' + (cls ? ' ' + cls : ''); }
+
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
   }
 
+  async function uploadImage(file) {
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error('upload failed');
+    return (await r.json()).url;
+  }
+
+  // --- the editor ---
   let editor;
   editor = new Editor({
     element: mount,
     extensions: [
       StarterKit,
       Image,
-      Placeholder.configure({ placeholder: 'start writing… paste from Google Docs, drop in photos — it all just works.' }),
+      Placeholder.configure({ placeholder: 'start writing… this page is yours.' }),
     ],
     content: initial || '',
     editorProps: {
@@ -151,7 +263,7 @@ const bodyHtml = p.body_html || '';
         for (const it of items) {
           if (it.type.startsWith('image/')) {
             const file = it.getAsFile();
-            if (file) uploadImage(file).then((url) => editor.chain().focus().setImage({ src: url }).run());
+            if (file) uploadImage(file).then((url) => editor.chain().focus().setImage({ src: url }).run()).catch(() => toast('image failed'));
             return true;
           }
         }
@@ -161,26 +273,26 @@ const bodyHtml = p.body_html || '';
         const files = event.dataTransfer && event.dataTransfer.files;
         if (files && files.length && files[0].type.startsWith('image/')) {
           event.preventDefault();
-          uploadImage(files[0]).then((url) => editor.chain().focus().setImage({ src: url }).run());
+          uploadImage(files[0]).then((url) => editor.chain().focus().setImage({ src: url }).run()).catch(() => toast('image failed'));
           return true;
         }
         return false;
       },
     },
+    onUpdate: () => scheduleSave(),
+    onSelectionUpdate: () => { refreshToolbar(); updateBubble(); },
     onTransaction: () => refreshToolbar(),
+    onBlur: () => setTimeout(() => $('bubble').classList.remove('show'), 160),
   });
 
-  // --- toolbar ---
-  const toolbar = document.getElementById('toolbar');
+  // --- commands (shared by toolbar + bubble) ---
   const imgInput = document.createElement('input');
-  imgInput.type = 'file';
-  imgInput.accept = 'image/*';
-  imgInput.hidden = true;
+  imgInput.type = 'file'; imgInput.accept = 'image/*'; imgInput.hidden = true;
   document.body.appendChild(imgInput);
   imgInput.addEventListener('change', async () => {
     if (imgInput.files && imgInput.files[0]) {
       try { const url = await uploadImage(imgInput.files[0]); editor.chain().focus().setImage({ src: url }).run(); }
-      catch { setStatus('image upload failed', true); }
+      catch { toast('image failed'); }
       imgInput.value = '';
     }
   });
@@ -204,86 +316,146 @@ const bodyHtml = p.body_html || '';
       else editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     },
   };
-  toolbar.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-cmd]');
-    if (!btn) return;
-    const fn = CMDS[btn.dataset.cmd];
-    if (fn) fn();
-  });
-
-  function refreshToolbar() {
-    if (!editor) return; // onTransaction can fire during construction
-    const states = {
-      bold: editor.isActive('bold'), italic: editor.isActive('italic'),
-      h2: editor.isActive('heading', { level: 2 }), h3: editor.isActive('heading', { level: 3 }),
-      bullet: editor.isActive('bulletList'), ordered: editor.isActive('orderedList'),
-      quote: editor.isActive('blockquote'), link: editor.isActive('link'),
-    };
-    toolbar.querySelectorAll('button[data-cmd]').forEach((b) => {
-      b.classList.toggle('on', !!states[b.dataset.cmd]);
+  function wireCmds(container) {
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-cmd]');
+      if (btn && CMDS[btn.dataset.cmd]) CMDS[btn.dataset.cmd]();
     });
   }
+  wireCmds($('toolbar'));
+  const bubble = $('bubble');
+  bubble.addEventListener('mousedown', (e) => e.preventDefault()); // keep selection on click
+  wireCmds(bubble);
+
+  function refreshToolbar() {
+    if (!editor) return;
+    const s = {
+      h2: editor.isActive('heading', { level: 2 }), h3: editor.isActive('heading', { level: 3 }),
+      bullet: editor.isActive('bulletList'), ordered: editor.isActive('orderedList'),
+      quote: editor.isActive('blockquote'),
+      bold: editor.isActive('bold'), italic: editor.isActive('italic'), link: editor.isActive('link'),
+    };
+    document.querySelectorAll('button[data-cmd]').forEach((b) => b.classList.toggle('on', !!s[b.dataset.cmd]));
+  }
+
+  function updateBubble() {
+    if (!editor) return;
+    const { from, to, empty } = editor.state.selection;
+    if (empty || !editor.isFocused) { bubble.classList.remove('show'); return; }
+    const a = editor.view.coordsAtPos(from);
+    const b = editor.view.coordsAtPos(to);
+    bubble.style.top = Math.min(a.top, b.top) + 'px';
+    bubble.style.left = (a.left + b.left) / 2 + 'px';
+    bubble.classList.add('show');
+  }
+  window.addEventListener('scroll', () => { if (bubble.classList.contains('show')) updateBubble(); }, true);
 
   // --- cover photo ---
-  const coverBox = document.getElementById('cover-box');
-  const coverInput = document.getElementById('cover-input');
-  const coverPreview = document.getElementById('cover-preview');
-  const coverRemove = document.getElementById('btn-cover-remove');
-  document.getElementById('btn-cover').addEventListener('click', () => coverInput.click());
+  const coverBox = $('cover-box'), coverInput = $('cover-input'), coverPreview = $('cover-preview'), coverRemove = $('btn-cover-remove');
+  $('btn-cover').addEventListener('click', () => coverInput.click());
   coverInput.addEventListener('change', async () => {
     if (!coverInput.files || !coverInput.files[0]) return;
     try {
       const url = await uploadImage(coverInput.files[0]);
-      coverBox.dataset.url = url;
-      coverPreview.src = url; coverPreview.style.display = 'block';
-      coverRemove.style.display = '';
-    } catch { setStatus('cover upload failed', true); }
+      coverBox.dataset.url = url; coverPreview.src = url; coverPreview.style.display = 'block'; coverRemove.style.display = '';
+      scheduleSave();
+    } catch { toast('cover failed'); }
     coverInput.value = '';
   });
   coverRemove.addEventListener('click', () => {
-    coverBox.dataset.url = ''; coverPreview.src = ''; coverPreview.style.display = 'none';
-    coverRemove.style.display = 'none';
+    coverBox.dataset.url = ''; coverPreview.src = ''; coverPreview.style.display = 'none'; coverRemove.style.display = 'none';
+    scheduleSave();
   });
 
-  // --- save / publish ---
-  const statusEl = document.getElementById('save-status');
-  function setStatus(msg, isErr) { statusEl.textContent = msg; statusEl.classList.toggle('err', !!isErr); }
-
-  async function save(status) {
-    const title = document.getElementById('f-title').value.trim();
-    if (!title) { setStatus('give it a title first', true); return; }
-    const payload = {
-      title,
-      section: document.getElementById('f-section').value,
-      doodle: document.getElementById('f-doodle').value,
-      song: document.getElementById('f-song').value,
-      excerpt: document.getElementById('f-excerpt').value,
-      featured: document.getElementById('f-featured').checked,
+  // --- collect + autosave ---
+  function collect() {
+    return {
+      title: $('f-title').value.trim(),
+      section: $('f-section').value,
+      doodle: $('f-doodle').value,
+      song: $('f-song').value,
+      song_url: $('f-song-url').value.trim(),
+      excerpt: $('f-excerpt').value,
+      featured: $('f-featured').checked,
       cover_url: coverBox.dataset.url || null,
       body_html: editor.getHTML(),
-      status,
     };
-    const id = root.dataset.postId;
-    const url = id ? `/api/posts/${id}` : '/api/posts';
-    setStatus('saving…');
-    const r = await fetch(url, {
-      method: id ? 'PUT' : 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!r.ok) { const e = await r.json().catch(() => ({})); setStatus(e.error || 'save failed', true); return; }
-    window.location.href = '/admin';
   }
-  document.querySelectorAll('[data-save]').forEach((b) => b.addEventListener('click', () => save(b.dataset.save)));
+  function snapshot() { return JSON.stringify(collect()); }
 
-  // --- delete ---
-  const del = document.getElementById('btn-delete');
-  if (del) del.addEventListener('click', async () => {
-    if (!window.confirm('delete this piece for good?')) return;
-    const r = await fetch(`/api/posts/${root.dataset.postId}`, { method: 'DELETE' });
-    if (r.ok) window.location.href = '/admin';
-    else setStatus('delete failed', true);
+  async function doSave(targetStatus) {
+    if (saving) return false;
+    const data = collect();
+    if (!data.title) { setStatus('add a title to save', 'hint'); return false; }
+    const useStatus = targetStatus || status;
+    saving = true; setStatus('saving…');
+    try {
+      const url = postId ? `/api/posts/${postId}` : '/api/posts';
+      const r = await fetch(url, { method: postId ? 'PUT' : 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...data, status: useStatus }) });
+      if (!r.ok) { setStatus("couldn't save", 'err'); return false; }
+      const res = await r.json();
+      if (!postId) { postId = String(res.id); history.replaceState({}, '', `/admin/edit/${postId}`); }
+      slug = res.slug || slug;
+      status = useStatus;
+      lastSnap = JSON.stringify(data);
+      reflectStatus();
+      setStatus('saved ✓', 'ok');
+      return true;
+    } catch {
+      setStatus("couldn't save", 'err'); return false;
+    } finally { saving = false; }
+  }
+
+  function scheduleSave() {
+    setStatus('unsaved…');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { if (snapshot() !== lastSnap) doSave(); }, 1200);
+  }
+  // autosave on any field change
+  ['f-title', 'f-section', 'f-doodle', 'f-song', 'f-song-url', 'f-excerpt', 'f-featured'].forEach((id) => {
+    $(id).addEventListener('input', scheduleSave);
+    $(id).addEventListener('change', scheduleSave);
   });
 
+  // --- publish / status ---
+  const chip = $('state-chip'), pubBtn = $('btn-publish'), viewLink = $('link-view'), unpub = $('btn-unpublish');
+  function reflectStatus() {
+    const live = status === 'published';
+    chip.textContent = live ? 'live' : 'draft';
+    chip.classList.toggle('live', live);
+    pubBtn.textContent = live ? 'view it ↗' : 'publish ✷';
+    viewLink.style.display = live ? '' : 'none';
+    unpub.style.display = live ? '' : 'none';
+    if (live && slug) { viewLink.href = `/blog/${slug}`; }
+  }
+  pubBtn.addEventListener('click', async () => {
+    if (status === 'published') { if (slug) window.open(`/blog/${slug}`, '_blank'); return; }
+    const ok = await doSave('published');
+    if (ok) toast('published ✷');
+  });
+  unpub.addEventListener('click', async () => {
+    const ok = await doSave('draft');
+    if (ok) toast('moved to draft');
+  });
+
+  // --- delete ---
+  const del = $('btn-delete');
+  if (del) del.addEventListener('click', async () => {
+    if (!window.confirm('delete this piece for good?')) return;
+    const r = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
+    if (r.ok) window.location.href = '/admin'; else toast('delete failed');
+  });
+
+  // --- details toggle (mobile) ---
+  $('btn-details').addEventListener('click', () => $('studio-side').classList.toggle('open'));
+
+  // --- don't lose work ---
+  window.addEventListener('beforeunload', (e) => {
+    if (snapshot() !== lastSnap && $('f-title').value.trim()) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // init
+  lastSnap = JSON.stringify(collect());
+  reflectStatus();
   refreshToolbar();
 </script>

@@ -1,0 +1,30 @@
+---
+const { section } = Astro.props;
+const d = section.data || {};
+const design = section.design || 'note';
+---
+{design === 'quote' ? (
+  <section class="spread wrap rv">
+    <svg class="doodle" style="top:40px;left:6%;width:70px;height:70px" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
+    <svg class="doodle" style="bottom:40px;right:8%;width:54px;height:54px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
+    <blockquote>{d.quote}</blockquote>
+    {d.by && <div class="by">— {d.by}</div>}
+  </section>
+) : (
+  <section class={`wrap txt-sec txt-${design} rv`}>
+    {section.heading && <div class="sec-head"><h2>{section.heading}</h2><span class="line"></span></div>}
+    <div class="txt-body" set:html={d.body_html || ''}></div>
+  </section>
+)}
+
+<style>
+  .txt-sec{margin:70px auto}
+  .txt-note{max-width:760px}
+  .txt-note .txt-body{background:#F6EFC7;border:2px solid rgba(24,22,34,.5);box-shadow:5px 8px 0 rgba(34,34,201,.14);
+    transform:rotate(-.5deg);padding:30px 34px;font-family:var(--type);line-height:1.8}
+  .txt-plain .txt-body{font-family:var(--type);line-height:1.85;max-width:760px}
+  .txt-body :global(h2),.txt-body :global(h3){font-family:var(--marker);color:var(--blue-deep);margin:.6em 0 .2em}
+  .txt-body :global(p)+ :global(p){margin-top:.8em}
+  .txt-body :global(img){max-width:100%;height:auto;border:5px solid var(--card);box-shadow:4px 7px 18px rgba(0,0,0,.2)}
+  .txt-body :global(blockquote){border-left:3px solid var(--pink);padding-left:16px;font-style:italic;color:var(--ink-soft)}
+</style>

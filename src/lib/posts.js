@@ -20,6 +20,7 @@ function countWords(html) {
 // D1 row -> the shape every page/component already expects
 function toPost(row) {
   return {
+    id: row.id,
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt || '',
@@ -28,6 +29,7 @@ function toPost(row) {
     doodle: row.doodle || 'star',
     song: row.song || '',
     featured: !!row.featured,
+    songUrl: row.song_url || '',
     cover: row.cover_url || null, // now a plain URL string (was a Storyblok object)
     date: row.published_at || row.created_at,
     bodyHtml: row.body_html || '',

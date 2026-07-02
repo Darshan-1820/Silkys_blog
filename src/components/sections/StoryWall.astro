@@ -1,0 +1,25 @@
+---
+import Doodle from '../Doodle.astro';
+const { section, posts } = Astro.props;
+const count = posts.length;
+---
+<div class="wrap" id="wall">
+  <svg class="scatter" style="right:-46px;top:-20px;width:130px;height:130px;z-index:0" viewBox="0 0 100 100" fill="none" stroke="var(--pink)" stroke-width="3.5" stroke-linecap="round">
+    <circle cx="50" cy="50" r="15" fill="var(--pink)"/>
+    <g stroke="var(--pink)"><path d="M50 6v15M50 79v15M6 50h15M79 50h15M19 19l11 11M70 70l11 11M81 19l-11 11M30 70l-11 11"/></g>
+    <path d="M50 43 a7 7 0 1 1 -5 11" stroke="#fff" stroke-width="2.5"/>
+  </svg>
+  <svg class="scatter" style="left:38%;top:-26px;width:26px;height:26px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
+  <div class="sec-head rv"><h2>{section.heading || 'the wall'}</h2><span class="line"></span><span class="sticker" style="font-size:.9rem">{count} {count === 1 ? 'piece' : 'pieces'}</span></div>
+  <div class="wall">
+    {posts.map((p) => (
+      <a class="pin rv" href={`/blog/${p.slug}`} style="text-decoration:none;display:block">
+        <span class="tapebit"></span>
+        <div class="thumb"><Doodle name={p.doodle} size={88} /></div>
+        <h3>{p.title}</h3>
+        <p class="ex">{p.excerpt}</p>
+        <div class="foot"><span class="sticker" style="font-size:.72rem">{p.categoryLabel}</span><span class="rt">{p.readTime} min</span></div>
+      </a>
+    ))}
+  </div>
+</div>

@@ -1,0 +1,317 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { guard } from '../../../lib/auth.js';
+import { getSectionById } from '../../../lib/sections.js';
+import { getPostsForAdmin } from '../../../lib/posts.js';
+import { SECTION_TYPES } from '../../../lib/section-types.js';
+
+const denied = await guard(Astro);
+if (denied) return denied;
+
+const { DB } = Astro.locals.runtime.env;
+const section = await getSectionById(DB, Number(Astro.params.id));
+if (!section) return Astro.redirect('/admin/home');
+const posts = await getPostsForAdmin(DB);
+
+const meta = SECTION_TYPES[section.type] || { label: section.type, designs: [] };
+const d = section.data || {};
+const items = d.items || [];
+const lyr = d.lyrics || [];
+// for the text 'plain'/'note' editor: turn stored HTML back into plain paragraphs
+const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<\/?p>/gi, '').trim();
+---
+<Admin title={`edit — ${meta.label}`}>
+<div class="desk" id="sec-editor" data-id={String(section.id)} data-type={section.type} data-design={section.design || ''}>
+  <div class="row" style="justify-content:space-between;margin-bottom:18px">
+    <a class="btn ghost" href="/admin/home">← homepage</a>
+    <div class="row">
+      <span id="save-status" class="save-status"></span>
+      <label class="show-toggle"><input type="checkbox" id="f-show" checked={section.status === 'published'} /> <span>show on homepage</span></label>
+      <button class="btn" type="button" id="btn-save">save</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="note-h" style="font-size:1.4rem;margin-bottom:4px">{meta.label}</div>
+    <p class="adm-sub" style="margin-bottom:16px">{meta.hint}</p>
+
+    {/* design variants */}
+    {meta.designs && meta.designs.length > 1 && (
+      <label class="fld"><span>design</span>
+        <select id="f-design" class="in">
+          {meta.designs.map(([v, l]) => <option value={v} selected={section.design === v}>{l}</option>)}
+        </select>
+      </label>
+    )}
+
+    {/* ---- FEATURED ---- */}
+    {section.type === 'featured' && (
+      <div data-type-fields>
+        <label class="fld"><span>little label above the title</span>
+          <input id="f-subhead" class="in" type="text" value={section.subhead || ''} placeholder="featured · this week" />
+        </label>
+        <label class="fld"><span>which story is featured?</span>
+          <select id="f-mode" class="in">
+            <option value="auto" selected={(d.mode || 'auto') === 'auto'}>the story I marked ✷ featured</option>
+            <option value="pick" selected={d.mode === 'pick'}>let me pick one</option>
+          </select>
+        </label>
+        <label class="fld" id="pick-wrap" style={d.mode === 'pick' ? '' : 'display:none'}><span>pick the story</span>
+          <select id="f-postId" class="in">
+            <option value="">— choose —</option>
+            {posts.map((pp) => <option value={String(pp.id)} selected={String(d.postId) === String(pp.id)}>{pp.title}</option>)}
+          </select>
+        </label>
+        <label class="fld"><span>song name (shown as “scored to …”)</span>
+          <input id="f-song" class="in" type="text" value={d.song || ''} placeholder="artist — track" />
+        </label>
+        <label class="fld"><span>▸ song link — so the radio plays it (Spotify / YouTube)</span>
+          <input id="f-songUrl" class="in" type="url" value={d.songUrl || ''} placeholder="paste a Spotify or YouTube link" />
+        </label>
+        <label class="fld"><span>lyrics that drift out of the radio (3 short lines)</span></label>
+        <input class="in lyr-in" type="text" data-lyr value={lyr[0] || ''} placeholder="line one" />
+        <input class="in lyr-in" type="text" data-lyr value={lyr[1] || ''} placeholder="line two" />
+        <input class="in lyr-in" type="text" data-lyr value={lyr[2] || ''} placeholder="line three" />
+      </div>
+    )}
+
+    {/* ---- STORY WALL ---- */}
+    {section.type === 'story_wall' && (
+      <div data-type-fields>
+        <label class="fld"><span>heading</span>
+          <input id="f-heading" class="in" type="text" value={section.heading || ''} placeholder="the wall" />
+        </label>
+        <p class="adm-sub">this section shows all your published stories automatically.</p>
+      </div>
+    )}
+
+    {/* ---- TEXT ---- */}
+    {section.type === 'text' && (
+      <div data-type-fields>
+        <div data-when-quote style={section.design === 'quote' ? '' : 'display:none'}>
+          <label class="fld"><span>the quote</span>
+            <textarea id="f-quote" class="in" rows="3" placeholder="If I was the moon, would you still look for the stars?">{d.quote || ''}</textarea>
+          </label>
+          <label class="fld"><span>— who said it / where it's from</span>
+            <input id="f-by" class="in" type="text" value={d.by || ''} placeholder="from the margins of an old notebook" />
+          </label>
+        </div>
+        <div data-when-text style={section.design === 'quote' ? 'display:none' : ''}>
+          <label class="fld"><span>heading</span>
+            <input id="f-heading" class="in" type="text" value={section.heading || ''} placeholder="a heading (optional)" />
+          </label>
+          <label class="fld"><span>write it out</span>
+            <textarea id="f-body" class="in" rows="10" placeholder="let it out…">{plainBody}</textarea>
+          </label>
+        </div>
+      </div>
+    )}
+
+    {/* ---- ITEM-BASED: books / music / gallery ---- */}
+    {(section.type === 'books' || section.type === 'music' || section.type === 'gallery') && (
+      <div data-type-fields>
+        <label class="fld"><span>heading</span>
+          <input id="f-heading" class="in" type="text" value={section.heading || ''} placeholder="a heading" />
+        </label>
+        <label class="fld"><span>little label (optional)</span>
+          <input id="f-subhead" class="in" type="text" value={section.subhead || ''} placeholder="e.g. this week" />
+        </label>
+
+        {section.type === 'music' && (
+          <label class="fld"><span>playlist to embed (Apple Music or Spotify link, optional)</span>
+            <input id="f-playlist" class="in" type="url" value={d.playlistUrl || ''} placeholder="paste a playlist link" />
+          </label>
+        )}
+
+        <div class="fld"><span>{section.type === 'gallery' ? 'photos' : section.type === 'books' ? 'books' : 'songs'}</span></div>
+        <div class="items" id="items">
+          {items.map((it) => (
+            <div class="item-row">
+              {section.type === 'books' && (
+                <>
+                  <div class="thumb-up">
+                    <img class="thumb" src={it.cover_url || ''} style={it.cover_url ? '' : 'display:none'} data-field="cover_url" data-url={it.cover_url || ''} />
+                    <button class="btn ghost small up" type="button">cover…</button>
+                    <input type="file" accept="image/*" hidden />
+                  </div>
+                  <div class="fields">
+                    <input class="in" data-field="title" value={it.title || ''} placeholder="title" />
+                    <input class="in" data-field="author" value={it.author || ''} placeholder="author" />
+                    <input class="in" data-field="note" value={it.note || ''} placeholder="a line about it (optional)" />
+                  </div>
+                </>
+              )}
+              {section.type === 'music' && (
+                <div class="fields">
+                  <input class="in" data-field="title" value={it.title || ''} placeholder="song" />
+                  <input class="in" data-field="artist" value={it.artist || ''} placeholder="artist" />
+                  <input class="in" data-field="url" value={it.url || ''} placeholder="link (optional)" />
+                </div>
+              )}
+              {section.type === 'gallery' && (
+                <>
+                  <div class="thumb-up">
+                    <img class="thumb" src={it.img_url || ''} style={it.img_url ? '' : 'display:none'} data-field="img_url" data-url={it.img_url || ''} />
+                    <button class="btn ghost small up" type="button">photo…</button>
+                    <input type="file" accept="image/*" hidden />
+                  </div>
+                  <div class="fields">
+                    <input class="in" data-field="caption" value={it.caption || ''} placeholder="caption (optional)" />
+                  </div>
+                </>
+              )}
+              <button class="btn ghost small danger rm" type="button">✕</button>
+            </div>
+          ))}
+        </div>
+        <button class="btn ghost small" type="button" id="add-item">+ add {section.type === 'gallery' ? 'photo' : section.type === 'books' ? 'book' : 'song'}</button>
+      </div>
+    )}
+
+    <div class="note-foot" style="margin-top:22px">
+      <button id="btn-delete" class="note-link danger" type="button">delete this section</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .save-status{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);min-width:70px}
+  .save-status.ok{color:var(--blue-deep)} .save-status.err{color:var(--pink-deep)}
+  .show-toggle{display:flex;align-items:center;gap:7px;font-family:var(--type);font-size:.86rem;cursor:pointer}
+  .show-toggle input{width:17px;height:17px;accent-color:var(--pink)}
+  .lyr-in{margin-top:7px}
+  .items{display:flex;flex-direction:column;gap:12px;margin:6px 0 12px}
+  .item-row{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1.5px dashed rgba(24,22,34,.3);padding:11px}
+  .item-row .fields{flex:1;display:flex;flex-direction:column;gap:6px}
+  .thumb-up{display:flex;flex-direction:column;gap:5px;align-items:center;width:92px;flex:none}
+  .thumb{width:92px;height:92px;object-fit:cover;border:3px solid var(--card);box-shadow:1px 2px 6px rgba(0,0,0,.2)}
+  .btn.small{padding:5px 10px;font-size:.74rem;box-shadow:2px 2px 0 rgba(0,0,0,.18)}
+  .btn.small.danger{color:var(--pink-deep)}
+  .item-row .rm{align-self:center}
+  .note-link{font-family:var(--type);font-size:.84rem;color:var(--pink-deep);background:none;border:none;cursor:pointer;padding:0}
+  .note-link:hover{text-decoration:underline}
+</style>
+
+<script>
+  const root = document.getElementById('sec-editor');
+  const id = root.dataset.id;
+  const type = root.dataset.type;
+  const $ = (x) => document.getElementById(x);
+  const val = (x) => ($(x) ? $(x).value : '');
+  const statusEl = $('save-status');
+  const setStatus = (m, c) => { statusEl.textContent = m; statusEl.className = 'save-status' + (c ? ' ' + c : ''); };
+
+  // ---- image upload helper ----
+  async function uploadImage(file) {
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error('upload');
+    return (await r.json()).url;
+  }
+  function wireUpload(rowScope) {
+    rowScope.querySelectorAll('.thumb-up').forEach((box) => {
+      if (box.dataset.wired) return; box.dataset.wired = '1';
+      const btn = box.querySelector('.up');
+      const input = box.querySelector('input[type=file]');
+      const img = box.querySelector('.thumb');
+      btn.addEventListener('click', () => input.click());
+      input.addEventListener('change', async () => {
+        if (!input.files || !input.files[0]) return;
+        setStatus('uploading…');
+        try { const url = await uploadImage(input.files[0]); img.src = url; img.style.display = 'block'; img.dataset.url = url; setStatus(''); }
+        catch { setStatus('upload failed', 'err'); }
+        input.value = '';
+      });
+    });
+  }
+
+  // ---- design variant show/hide (text type) ----
+  const design = $('f-design');
+  function applyDesign() {
+    if (type === 'text') {
+      const isQuote = design && design.value === 'quote';
+      const q = document.querySelector('[data-when-quote]');
+      const t = document.querySelector('[data-when-text]');
+      if (q) q.style.display = isQuote ? '' : 'none';
+      if (t) t.style.display = isQuote ? 'none' : '';
+    }
+  }
+  if (design) design.addEventListener('change', applyDesign);
+
+  // ---- featured mode toggle ----
+  const mode = $('f-mode');
+  if (mode) mode.addEventListener('change', () => { $('pick-wrap').style.display = mode.value === 'pick' ? '' : 'none'; });
+
+  // ---- items (books/music/gallery) ----
+  const itemsWrap = $('items');
+  if (itemsWrap) {
+    wireUpload(itemsWrap);
+    itemsWrap.addEventListener('click', (e) => {
+      const rm = e.target.closest('.rm'); if (rm) rm.closest('.item-row').remove();
+    });
+    $('add-item').addEventListener('click', () => {
+      const row = document.createElement('div'); row.className = 'item-row';
+      if (type === 'books') row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="cover_url" data-url="" style="display:none"><button class="btn ghost small up" type="button">cover…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="title" placeholder="title"><input class="in" data-field="author" placeholder="author"><input class="in" data-field="note" placeholder="a line about it (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
+      else if (type === 'music') row.innerHTML = `<div class="fields"><input class="in" data-field="title" placeholder="song"><input class="in" data-field="artist" placeholder="artist"><input class="in" data-field="url" placeholder="link (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
+      else row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="img_url" data-url="" style="display:none"><button class="btn ghost small up" type="button">photo…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="caption" placeholder="caption (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
+      itemsWrap.appendChild(row); wireUpload(row);
+    });
+  }
+
+  function collectItems() {
+    const rows = itemsWrap ? itemsWrap.querySelectorAll('.item-row') : [];
+    const out = [];
+    rows.forEach((row) => {
+      const obj = {};
+      row.querySelectorAll('[data-field]').forEach((el) => {
+        obj[el.dataset.field] = el.tagName === 'IMG' ? (el.dataset.url || '') : el.value.trim();
+      });
+      // skip empty rows
+      const meaningful = type === 'gallery' ? obj.img_url : (obj.title || obj.cover_url || obj.img_url);
+      if (meaningful) out.push(obj);
+    });
+    return out;
+  }
+
+  function buildData() {
+    if (type === 'featured') {
+      return {
+        mode: val('f-mode'), postId: val('f-postId') || null,
+        song: val('f-song'), songUrl: val('f-songUrl'),
+        lyrics: Array.from(document.querySelectorAll('[data-lyr]')).map((i) => i.value.trim()),
+      };
+    }
+    if (type === 'text') {
+      if (design && design.value === 'quote') return { quote: val('f-quote'), by: val('f-by') };
+      const body = val('f-body').trim();
+      const html = body ? body.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('') : '';
+      return { body_html: html };
+    }
+    if (type === 'music') return { items: collectItems(), playlistUrl: val('f-playlist') };
+    if (type === 'books' || type === 'gallery') return { items: collectItems() };
+    return {};
+  }
+
+  async function save() {
+    const payload = {
+      heading: val('f-heading'),
+      subhead: val('f-subhead'),
+      design: design ? design.value : root.dataset.design,
+      data: buildData(),
+      status: $('f-show').checked ? 'published' : 'draft',
+    };
+    setStatus('saving…');
+    const r = await fetch(`/api/sections/${id}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+    if (r.ok) setStatus('saved ✓', 'ok'); else setStatus("couldn't save", 'err');
+  }
+  $('btn-save').addEventListener('click', save);
+
+  $('btn-delete').addEventListener('click', async () => {
+    if (!confirm('delete this section for good?')) return;
+    const r = await fetch(`/api/sections/${id}`, { method: 'DELETE' });
+    if (r.ok) window.location.href = '/admin/home';
+  });
+
+  applyDesign();
+</script>
+</Admin>

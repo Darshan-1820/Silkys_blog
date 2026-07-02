@@ -40,6 +40,12 @@ const { title = 'the writing desk' } = Astro.props;
     border:1.5px dashed var(--pink);padding:8px 12px;font-size:.88rem}
   a.link{color:var(--blue);text-decoration:none;border-bottom:1.5px solid var(--blue)}
   a.link:hover{color:var(--pink);border-color:var(--pink)}
+  .chip{font-family:var(--sticker);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:#8a8698;padding:3px 10px 4px;transform:rotate(-2deg);white-space:nowrap}
+  .chip.live{background:var(--blue)}
+  .note-h{font-family:var(--marker);font-size:1.5rem;color:var(--ink)}
+  .note-foot{margin-top:20px;border-top:1.5px dashed rgba(24,22,34,.25);padding-top:12px}
+  .check{display:flex;align-items:center;gap:9px;font-family:var(--type);font-size:.9rem;cursor:pointer}
+  .check input{width:18px;height:18px;accent-color:var(--pink)}
 </style>
 </head>
 <body data-theme="day">

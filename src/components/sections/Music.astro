@@ -1,0 +1,51 @@
+---
+import { songEmbed } from '../../lib/song.js';
+const { section } = Astro.props;
+const items = (section.data && section.data.items) || [];
+const playlist = section.data && section.data.playlistUrl ? songEmbed(section.data.playlistUrl) : null;
+---
+<section class="wrap music-sec rv">
+  <div class="sec-head"><h2>{section.heading || 'on repeat'}</h2><span class="line"></span>
+    {section.subhead && <span class="sticker" style="font-size:.82rem">{section.subhead}</span>}
+  </div>
+
+  {items.length > 0 && (
+    <div class="song-grid">
+      {items.map((s) => (
+        <a class="song-card" href={s.url || '#'} target={s.url ? '_blank' : undefined} rel="noopener" style={s.url ? '' : 'pointer-events:none'}>
+          <svg viewBox="0 0 60 60" class="vinyl" aria-hidden="true">
+            <circle cx="30" cy="30" r="27" fill="var(--ink)" stroke="var(--blue)" stroke-width="2"/>
+            <circle cx="30" cy="30" r="17" fill="none" stroke="var(--pink)" stroke-width="1.4" opacity=".6"/>
+            <circle cx="30" cy="30" r="7" fill="var(--pink)"/><circle cx="30" cy="30" r="2" fill="var(--paper)"/>
+          </svg>
+          <div><b class="st">{s.title}</b>{s.artist && <div class="sa">{s.artist}</div>}</div>
+          {s.url && <span class="sp">▸</span>}
+        </a>
+      ))}
+    </div>
+  )}
+
+  {playlist && (
+    <div class="playlist-embed">
+      <iframe src={playlist.src} height={playlist.height} width="100%" loading="lazy" style="border:0;overflow:hidden"
+        allow="autoplay *; encrypted-media *; clipboard-write" allowfullscreen></iframe>
+    </div>
+  )}
+
+  {items.length === 0 && !playlist && <p class="sec-empty">the playlist is still being made…</p>}
+</section>
+
+<style>
+  .music-sec{margin:64px auto}
+  .sec-empty{font-family:var(--type);color:var(--ink-soft);text-align:center;padding:24px}
+  .song-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:26px}
+  .song-card{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);background:var(--card);
+    border:2px solid var(--ink);padding:11px 14px;box-shadow:3px 4px 0 rgba(34,34,201,.12);transition:transform .12s var(--ease),box-shadow .12s var(--ease)}
+  .song-card:hover{transform:translate(-1px,-1px);box-shadow:4px 5px 0 rgba(34,34,201,.18)}
+  .vinyl{width:44px;height:44px;flex:none}
+  .st{font-family:var(--grotesk);font-size:.95rem;line-height:1.15;display:block}
+  .sa{font-family:var(--type);font-size:.8rem;color:var(--ink-soft)}
+  .sp{margin-left:auto;color:var(--pink);font-size:1.1rem}
+  .playlist-embed{margin-top:24px;max-width:680px;border:3px solid var(--ink);box-shadow:5px 7px 0 rgba(34,34,201,.14)}
+  .playlist-embed iframe{display:block}
+</style>
