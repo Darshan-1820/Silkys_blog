@@ -23,7 +23,6 @@ function fmt(dateStr) {
     <svg class="doodle" style="bottom:40px;right:8%;width:54px;height:54px" viewBox="0 0 60 60" fill="var(--blue)"><path d="M30 6 L35 25 L54 30 L35 35 L30 54 L25 35 L6 30 L25 25 Z"/></svg>
     <blockquote>{d.quote}</blockquote>
     {d.by && <div class="by">— {d.by}</div>}
-    <div style="display:flex;justify-content:center;margin-top:18px"><Interactions target={`quote:${section.id}`} /></div>
   </section>
 ) : (
   <section class="wrap txt-feed rv">
