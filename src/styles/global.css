@@ -299,6 +299,32 @@
   .preview-bar .pv-close{background:rgba(0,0,0,.22);color:#fff;border:none;padding:4px 12px;cursor:pointer;
     font-family:var(--type);font-size:.82rem}
   body:has(.preview-bar){padding-top:40px}
+  /* reader interactions (likes + comments) */
+  .ix{margin-top:12px}
+  .ix-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .ix-like,.ix-cmt-btn{font-family:var(--type);font-size:.82rem;cursor:pointer;background:var(--card);
+    border:2px solid var(--ink);padding:5px 12px;color:var(--ink);box-shadow:2px 2px 0 rgba(0,0,0,.16);
+    transition:transform .1s,box-shadow .1s;line-height:1;display:inline-flex;align-items:center;gap:6px}
+  .ix-like:hover,.ix-cmt-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(0,0,0,.2)}
+  .ix-like.on{color:var(--pink);border-color:var(--pink)}
+  .ix-heart{font-size:1rem;line-height:1}
+  .ix-panel{margin-top:12px;border-left:3px solid var(--blue);padding-left:14px;max-width:640px}
+  .ix-list{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+  .ix-note{font-family:var(--type);font-size:.85rem;color:var(--ink-soft)}
+  .ix-cmt-meta{display:flex;align-items:baseline;gap:9px}
+  .ix-cmt-meta b{font-family:var(--grotesk);font-size:.9rem}
+  .ix-cmt-date{font-family:var(--type);font-size:.72rem;color:var(--ink-soft)}
+  .ix-cmt-body{font-family:var(--type);font-size:.92rem;line-height:1.55;margin-top:2px;white-space:pre-wrap}
+  .ix-form{display:flex;flex-direction:column;gap:8px;max-width:460px}
+  .ix-hp-wrap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .ix-name,.ix-body{font-family:var(--type);font-size:.9rem;padding:8px 11px;background:var(--card);
+    border:2px solid var(--ink);color:var(--ink);outline:none;width:100%}
+  .ix-name:focus,.ix-body:focus{border-color:var(--pink)}
+  .ix-body{resize:vertical}
+  .ix-post{align-self:flex-start;font-family:var(--sticker);letter-spacing:.04em;text-transform:uppercase;
+    cursor:pointer;background:var(--pink);color:#fff;border:2px solid var(--ink);padding:8px 16px;
+    box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+  .ix-post:disabled{opacity:.6;cursor:default}
   .pullq{font-family:var(--marker);font-weight:700;color:var(--pink);font-size:2rem;line-height:1;
     border-left:4px solid var(--blue);padding:6px 0 6px 18px;margin:34px 0;transform:rotate(-.8deg);
     text-shadow:1px 1px 0 var(--blue)}

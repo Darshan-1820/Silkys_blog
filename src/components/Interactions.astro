@@ -1,0 +1,25 @@
+---
+// Reader interaction bar. `comments={false}` = like only (photos).
+const { target, comments = true } = Astro.props;
+---
+<div class="ix" data-target={target} data-comments={comments ? '1' : '0'}>
+  <div class="ix-bar">
+    <button class="ix-like" type="button" aria-pressed="false" aria-label="like">
+      <span class="ix-heart">♡</span> <span class="ix-like-n">0</span>
+    </button>
+    {comments && (
+      <button class="ix-cmt-btn" type="button">💬 <span class="ix-cmt-n">0</span> comments</button>
+    )}
+  </div>
+  {comments && (
+    <div class="ix-panel" hidden>
+      <div class="ix-list"></div>
+      <form class="ix-form">
+        <div class="ix-hp-wrap" aria-hidden="true"><input class="ix-hp" tabindex="-1" autocomplete="off" name="website" /></div>
+        <input class="ix-name" type="text" placeholder="your name" maxlength="60" required />
+        <textarea class="ix-body" placeholder="say something kind…" maxlength="2000" rows="2" required></textarea>
+        <button class="ix-post" type="submit">post ✷</button>
+      </form>
+    </div>
+  )}
+</div>

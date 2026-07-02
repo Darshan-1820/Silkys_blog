@@ -166,6 +166,99 @@ const {
   })();
 </script>
 
+<!-- reader interactions: likes + comments -->
+<script is:inline>
+  (() => {
+    const nodes = [...document.querySelectorAll('.ix')];
+    if (!nodes.length) return;
+    let liked;
+    try { liked = new Set(JSON.parse(localStorage.getItem('liked') || '[]')); } catch { liked = new Set(); }
+    const saveLiked = () => { try { localStorage.setItem('liked', JSON.stringify([...liked])); } catch {} };
+    const fmt = (iso) => { try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch { return ''; } };
+
+    function markLiked(n, on) {
+      const btn = n.querySelector('.ix-like');
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.querySelector('.ix-heart').textContent = on ? '♥' : '♡';
+      btn.classList.toggle('on', on);
+    }
+    function commentEl(c) {
+      const d = document.createElement('div'); d.className = 'ix-cmt';
+      const meta = document.createElement('div'); meta.className = 'ix-cmt-meta';
+      const nm = document.createElement('b'); nm.textContent = c.author; meta.appendChild(nm);
+      const dt = document.createElement('span'); dt.className = 'ix-cmt-date'; dt.textContent = fmt(c.created_at); meta.appendChild(dt);
+      const bd = document.createElement('div'); bd.className = 'ix-cmt-body'; bd.textContent = c.body;
+      d.appendChild(meta); d.appendChild(bd); return d;
+    }
+
+    // batch-fetch counts
+    const targets = nodes.map((n) => n.dataset.target);
+    fetch('/api/counts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ targets }) })
+      .then((r) => r.json()).then(({ counts }) => {
+        nodes.forEach((n) => {
+          const c = (counts && counts[n.dataset.target]) || { likes: 0, comments: 0 };
+          n.querySelector('.ix-like-n').textContent = c.likes;
+          const cn = n.querySelector('.ix-cmt-n'); if (cn) cn.textContent = c.comments;
+          if (liked.has(n.dataset.target)) markLiked(n, true);
+        });
+      }).catch(() => {});
+
+    nodes.forEach((n) => {
+      const t = n.dataset.target;
+      const likeBtn = n.querySelector('.ix-like');
+      const likeN = n.querySelector('.ix-like-n');
+      likeBtn.addEventListener('click', async () => {
+        const on = !liked.has(t);
+        if (on) liked.add(t); else liked.delete(t); saveLiked(); markLiked(n, on);
+        likeN.textContent = Math.max(0, (parseInt(likeN.textContent || '0', 10) + (on ? 1 : -1)));
+        try {
+          const r = await fetch('/api/like', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ target: t, dir: on ? 1 : -1 }) });
+          const { count } = await r.json(); if (typeof count === 'number') likeN.textContent = count;
+        } catch {}
+      });
+
+      if (n.dataset.comments === '1') {
+        const cmtBtn = n.querySelector('.ix-cmt-btn');
+        const panel = n.querySelector('.ix-panel');
+        const list = n.querySelector('.ix-list');
+        const form = n.querySelector('.ix-form');
+        let loaded = false;
+        cmtBtn.addEventListener('click', async () => {
+          panel.hidden = !panel.hidden;
+          if (!panel.hidden && !loaded) {
+            loaded = true;
+            list.innerHTML = '<div class="ix-note">loading…</div>';
+            try {
+              const r = await fetch('/api/comments?target=' + encodeURIComponent(t));
+              const { comments } = await r.json();
+              if (!comments || !comments.length) list.innerHTML = '<div class="ix-note">no comments yet — be the first.</div>';
+              else { list.innerHTML = ''; comments.forEach((c) => list.appendChild(commentEl(c))); }
+            } catch { list.innerHTML = '<div class="ix-note">could not load comments</div>'; }
+          }
+        });
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = form.querySelector('.ix-name').value.trim();
+          const body = form.querySelector('.ix-body').value.trim();
+          const hp = form.querySelector('.ix-hp').value;
+          if (!name || !body) return;
+          const btn = form.querySelector('.ix-post'); btn.disabled = true;
+          try {
+            const r = await fetch('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ target: t, author: name, body, hp }) });
+            const { comment } = await r.json();
+            if (comment) {
+              const note = list.querySelector('.ix-note'); if (note) note.remove();
+              list.appendChild(commentEl(comment));
+              form.querySelector('.ix-body').value = '';
+              const cn = n.querySelector('.ix-cmt-n'); cn.textContent = (parseInt(cn.textContent || '0', 10) + 1);
+            }
+          } catch {} finally { btn.disabled = false; }
+        });
+      }
+    });
+  })();
+</script>
+
 <!-- image lightbox: click any gallery photo to view it full-size -->
 <div id="lightbox" class="lightbox" aria-hidden="true">
   <button class="lb-close" type="button" aria-label="close">✕</button>

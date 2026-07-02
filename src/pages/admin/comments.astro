@@ -1,0 +1,58 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { guard } from '../../lib/auth.js';
+import { listComments } from '../../lib/interactions.js';
+
+const denied = await guard(Astro);
+if (denied) return denied;
+
+const { DB } = Astro.locals.runtime.env;
+const comments = await listComments(DB);
+const LABEL = { post: 'a story', vent: 'a vent', book: 'a book', song: 'a song', quote: 'the quote', photo: 'a photo' };
+const where = (t) => LABEL[(t || '').split(':')[0]] || t;
+const fmt = (iso) => { try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return ''; } };
+---
+<Admin title="comments">
+<div class="desk">
+  <div class="adm-h" style="margin-bottom:6px">comments</div>
+  <p class="adm-sub" style="margin-bottom:22px">everything readers have said. delete anything you'd rather not keep up.</p>
+
+  {comments.length === 0 ? (
+    <div class="panel"><p style="font-family:var(--type);color:var(--ink-soft)">no comments yet — when readers start chatting, they'll show here.</p></div>
+  ) : (
+    <div class="cmt-list">
+      {comments.map((c) => (
+        <div class="cmt-row" data-id={c.id}>
+          <div class="cmt-main">
+            <div class="cmt-top"><b>{c.author}</b> <span class="cmt-on">on {where(c.target)}</span> <span class="cmt-when">· {fmt(c.created_at)}</span></div>
+            <div class="cmt-text">{c.body}</div>
+          </div>
+          <button class="btn ghost small danger" type="button" data-del>delete</button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .cmt-list{display:flex;flex-direction:column;gap:12px}
+  .cmt-row{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;background:var(--card);
+    border:2px solid var(--ink);padding:14px 16px;box-shadow:3px 4px 0 rgba(34,34,201,.1)}
+  .cmt-main{min-width:0;flex:1}
+  .cmt-top{font-family:var(--type);font-size:.85rem;margin-bottom:5px}
+  .cmt-top b{font-family:var(--grotesk)}
+  .cmt-on{color:var(--blue)} .cmt-when{color:var(--ink-soft)}
+  .cmt-text{font-family:var(--type);line-height:1.55;white-space:pre-wrap}
+  .btn.small.danger{color:var(--pink-deep);flex:none}
+</style>
+
+<script>
+  document.querySelectorAll('.cmt-row').forEach((row) => {
+    row.querySelector('[data-del]').addEventListener('click', async () => {
+      if (!confirm('delete this comment for good?')) return;
+      const r = await fetch(`/api/comments/${row.dataset.id}`, { method: 'DELETE' });
+      if (r.ok) row.remove();
+    });
+  });
+</script>
+</Admin>

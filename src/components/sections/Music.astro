@@ -1,5 +1,6 @@
 ---
 import { songEmbed } from '../../lib/song.js';
+import Interactions from '../Interactions.astro';
 const { section } = Astro.props;
 const items = (section.data && section.data.items) || [];
 const playlist = section.data && section.data.playlistUrl ? songEmbed(section.data.playlistUrl) : null;
@@ -11,16 +12,19 @@ const playlist = section.data && section.data.playlistUrl ? songEmbed(section.da
 
   {items.length > 0 && (
     <div class="song-grid">
-      {items.map((s) => (
-        <a class="song-card" href={s.url || '#'} target={s.url ? '_blank' : undefined} rel="noopener" style={s.url ? '' : 'pointer-events:none'}>
-          <svg viewBox="0 0 60 60" class="vinyl" aria-hidden="true">
-            <circle cx="30" cy="30" r="27" fill="var(--ink)" stroke="var(--blue)" stroke-width="2"/>
-            <circle cx="30" cy="30" r="17" fill="none" stroke="var(--pink)" stroke-width="1.4" opacity=".6"/>
-            <circle cx="30" cy="30" r="7" fill="var(--pink)"/><circle cx="30" cy="30" r="2" fill="var(--paper)"/>
-          </svg>
-          <div><b class="st">{s.title}</b>{s.artist && <div class="sa">{s.artist}</div>}</div>
-          {s.url && <span class="sp">▸</span>}
-        </a>
+      {items.map((s, i) => (
+        <div class="song-cell">
+          <a class="song-card" href={s.url || '#'} target={s.url ? '_blank' : undefined} rel="noopener" style={s.url ? '' : 'pointer-events:none'}>
+            <svg viewBox="0 0 60 60" class="vinyl" aria-hidden="true">
+              <circle cx="30" cy="30" r="27" fill="var(--ink)" stroke="var(--blue)" stroke-width="2"/>
+              <circle cx="30" cy="30" r="17" fill="none" stroke="var(--pink)" stroke-width="1.4" opacity=".6"/>
+              <circle cx="30" cy="30" r="7" fill="var(--pink)"/><circle cx="30" cy="30" r="2" fill="var(--paper)"/>
+            </svg>
+            <div><b class="st">{s.title}</b>{s.artist && <div class="sa">{s.artist}</div>}</div>
+            {s.url && <span class="sp">▸</span>}
+          </a>
+          <Interactions target={`song:${section.id}:${s.id || i}`} />
+        </div>
       ))}
     </div>
   )}

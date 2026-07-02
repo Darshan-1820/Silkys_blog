@@ -1,4 +1,5 @@
 ---
+import Interactions from '../Interactions.astro';
 const { section } = Astro.props;
 const items = (section.data && section.data.items) || [];
 const design = section.design || 'covers';
@@ -16,19 +17,20 @@ const design = section.design || 'covers';
         <li>
           <span class="num">{i + 1}</span>
           {b.cover_url && <img src={b.cover_url} alt="" class="mini-cover" />}
-          <div><b class="bt">{b.title}</b>{b.author && <span class="ba"> — {b.author}</span>}{b.note && <div class="bn">"{b.note}"</div>}</div>
+          <div><b class="bt">{b.title}</b>{b.author && <span class="ba"> — {b.author}</span>}{b.note && <div class="bn">"{b.note}"</div>}<Interactions target={`book:${section.id}:${b.id || i}`} /></div>
         </li>
       ))}
     </ol>
   ) : (
     <div class="book-grid">
-      {items.map((b) => (
+      {items.map((b, i) => (
         <div class="book-card">
           <span class="tapebit"></span>
           {b.cover_url ? <img src={b.cover_url} alt={b.title} class="bcover" /> : <div class="bcover ph">✦</div>}
           <b class="bt">{b.title}</b>
           {b.author && <div class="ba">{b.author}</div>}
           {b.note && <div class="bn">"{b.note}"</div>}
+          <div class="bx"><Interactions target={`book:${section.id}:${b.id || i}`} /></div>
         </div>
       ))}
     </div>

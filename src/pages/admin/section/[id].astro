@@ -113,7 +113,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
         <div class="fld"><span>entries — add one each time you vent; the newest shows first</span></div>
         <div class="items" id="entries">
           {textEntries.map((e) => (
-            <div class="item-row entry-row" data-date={e.date || ''}>
+            <div class="item-row entry-row" data-date={e.date || ''} data-id={e.id || ''}>
               <div class="entry-head">
                 <div class="mood-preview"><MoodDoodle mood={e.mood || 'calm'} size={40} /></div>
                 <label class="mood-label">how are you feeling?
@@ -150,7 +150,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
         <div class="fld"><span>{section.type === 'gallery' ? 'photos' : section.type === 'books' ? 'books' : 'songs'}</span></div>
         <div class="items" id="items">
           {items.map((it) => (
-            <div class="item-row">
+            <div class="item-row" data-id={it.id || ''}>
               {section.type === 'books' && (
                 <>
                   <div class="thumb-up">
@@ -227,6 +227,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
   const root = document.getElementById('sec-editor');
   const id = root.dataset.id;
   const type = root.dataset.type;
+  const genId = () => (self.crypto && crypto.randomUUID ? crypto.randomUUID() : 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2));
   const $ = (x) => document.getElementById(x);
   const val = (x) => ($(x) ? $(x).value : '');
   const statusEl = $('save-status');
@@ -276,6 +277,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
     function addGalleryRow(url) {
       const row = document.createElement('div');
       row.className = 'item-row';
+      row.dataset.id = genId();
       row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="img_url" data-url="${url || ''}" src="${url || ''}" style="${url ? '' : 'display:none'}"><button class="btn ghost small up" type="button">change…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="caption" placeholder="caption (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
       itemsWrap.appendChild(row); wireUpload(row); return row;
     }
@@ -300,7 +302,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
 
     $('add-item').addEventListener('click', () => {
       if (type === 'gallery') { galleryPicker.click(); return; }
-      const row = document.createElement('div'); row.className = 'item-row';
+      const row = document.createElement('div'); row.className = 'item-row'; row.dataset.id = genId();
       if (type === 'books') row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="cover_url" data-url="" style="display:none"><button class="btn ghost small up" type="button">cover…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="title" placeholder="title"><input class="in" data-field="author" placeholder="author"><input class="in" data-field="note" placeholder="a line about it (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
       else row.innerHTML = `<div class="fields"><input class="in" data-field="title" placeholder="song"><input class="in" data-field="artist" placeholder="artist"><input class="in" data-field="url" placeholder="link (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
       itemsWrap.appendChild(row); wireUpload(row);
@@ -319,6 +321,7 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
       const row = document.createElement('div');
       row.className = 'item-row entry-row';
       row.dataset.date = new Date().toISOString();
+      row.dataset.id = genId();
       row.innerHTML = `<div class="entry-head"><label class="mood-label">how are you feeling?<select class="in mood-sel" data-field="mood">${moodOptions('calm')}</select></label><button class="btn ghost small danger rm" type="button">✕</button></div><textarea class="in" data-field="body" rows="4" placeholder="let it out…"></textarea>`;
       entriesWrap.appendChild(row);
       row.querySelector('textarea').focus();
@@ -329,7 +332,8 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
     const rows = itemsWrap ? itemsWrap.querySelectorAll('.item-row') : [];
     const out = [];
     rows.forEach((row) => {
-      const obj = {};
+      if (!row.dataset.id) row.dataset.id = genId();
+      const obj = { id: row.dataset.id };
       row.querySelectorAll('[data-field]').forEach((el) => {
         obj[el.dataset.field] = el.tagName === 'IMG' ? (el.dataset.url || '') : el.value.trim();
       });
@@ -357,7 +361,8 @@ if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.
         if (!text) return;
         const html = text.split(/\n{2,}/).map((pp) => `<p>${pp.replace(/\n/g, '<br>')}</p>`).join('');
         const moodEl = row.querySelector('[data-field="mood"]');
-        entries.push({ date: row.dataset.date || new Date().toISOString(), mood: (moodEl && moodEl.value) || 'calm', body_html: html });
+        if (!row.dataset.id) row.dataset.id = genId();
+        entries.push({ id: row.dataset.id, date: row.dataset.date || new Date().toISOString(), mood: (moodEl && moodEl.value) || 'calm', body_html: html });
       });
       return { entries };
     }
