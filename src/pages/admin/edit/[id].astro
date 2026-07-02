@@ -1,0 +1,18 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import Editor from '../../../components/Editor.astro';
+import { guard } from '../../../lib/auth.js';
+import { getPostById } from '../../../lib/admin-db.js';
+
+const denied = await guard(Astro);
+if (denied) return denied;
+
+const { DB } = Astro.locals.runtime.env;
+const post = await getPostById(DB, Number(Astro.params.id));
+if (!post) return Astro.redirect('/admin');
+---
+<Admin title={`editing — ${post.title}`}>
+<div class="desk">
+  <Editor post={post} />
+</div>
+</Admin>

@@ -1,21 +1,15 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import { storyblok } from '@storyblok/astro';
-import { loadEnv } from 'vite';
+import cloudflare from '@astrojs/cloudflare';
 
-const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), 'STORYBLOK');
-
-// Static build (great for SEO + free Cloudflare Pages hosting).
-// Storyblok content is fetched at build time, then re-deployed via a publish webhook.
+// SSR on Cloudflare: the public blog renders on the edge reading from D1,
+// and /admin (Silky's editor) is fully dynamic. Publishing is instant — no rebuild.
 export default defineConfig({
   // site: 'https://your-domain.com', // set once the domain is bought (used for SEO/sitemap)
-  integrations: [
-    storyblok({
-      accessToken: env.STORYBLOK_TOKEN,
-      apiOptions: { region: 'eu' }, // space is on the EU region
-      components: {
-        // Storyblok component name -> Astro component path (filled in as we build the model)
-      },
-    }),
-  ],
+  output: 'server',
+  adapter: cloudflare({
+    // Lets `astro dev` talk to a LOCAL D1 + R2 (from wrangler.toml) so we can
+    // build and test the whole CMS offline before deploying.
+    platformProxy: { enabled: true },
+  }),
 });

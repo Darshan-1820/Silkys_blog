@@ -10,8 +10,16 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@storyblok/astro": "^10.0.1",
-    "astro": "^5.6.0",
-    "storyblok-js-client": "^7.6.1"
+    "@astrojs/cloudflare": "^12.6.13",
+    "@tiptap/core": "^3.27.1",
+    "@tiptap/extension-image": "^3.27.1",
+    "@tiptap/extension-link": "^3.27.1",
+    "@tiptap/extension-placeholder": "^3.27.1",
+    "@tiptap/pm": "^3.27.1",
+    "@tiptap/starter-kit": "^3.27.1",
+    "astro": "^5.6.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.106.0"
   }
 }

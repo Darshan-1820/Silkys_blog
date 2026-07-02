@@ -1,0 +1,17 @@
+# Cloudflare config for Silky's blog (free tier: Pages + D1 + R2).
+name = "silkys-blog"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# Posts database (Cloudflare D1 — SQLite at the edge).
+# database_id is filled in after we run `wrangler d1 create silkys-blog`.
+[[d1_databases]]
+binding = "DB"
+database_name = "silkys-blog"
+database_id = "PLACEHOLDER_FILL_AFTER_CREATE"
+
+# Uploaded photos (Cloudflare R2 — S3-style object storage, free 10GB).
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "silkys-blog-media"

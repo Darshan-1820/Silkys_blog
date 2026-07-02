@@ -1,0 +1,23 @@
+---
+import Admin from '../../layouts/Admin.astro';
+const hasError = Astro.url.searchParams.has('error');
+---
+<Admin title="sign in">
+<div class="desk narrow">
+  <div class="panel">
+    <span class="tape"></span>
+    <div class="adm-h">the writing desk</div>
+    <div class="adm-sub">sign in to write &amp; publish.</div>
+    <form method="post" action="/api/login">
+      <label class="fld">
+        <span>password</span>
+        <input class="in" type="password" name="password" autocomplete="current-password" autofocus required />
+      </label>
+      {hasError && <div class="err">that password didn't match. try again.</div>}
+      <div class="row" style="margin-top:22px">
+        <button class="btn" type="submit">open the desk →</button>
+      </div>
+    </form>
+  </div>
+</div>
+</Admin>

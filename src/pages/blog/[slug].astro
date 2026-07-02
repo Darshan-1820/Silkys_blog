@@ -1,15 +1,16 @@
 ---
-import { storyblokEditable } from '@storyblok/astro';
 import Base from '../../layouts/Base.astro';
 import Doodle from '../../components/Doodle.astro';
-import { getAllPosts } from '../../lib/posts.js';
+import { getAllPosts, getPostBySlug } from '../../lib/posts.js';
 
-export async function getStaticPaths() {
-  const posts = await getAllPosts();
-  return posts.map((p) => ({ params: { slug: p.slug }, props: { post: p, posts } }));
-}
+const { DB } = Astro.locals.runtime.env;
+const { slug } = Astro.params;
+const post = await getPostBySlug(DB, slug);
 
-const { post, posts } = Astro.props;
+// Unknown or unpublished slug -> proper 404 (good for SEO, avoids blank pages).
+if (!post) return new Response(null, { status: 404 });
+
+const posts = await getAllPosts(DB);
 const others = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
 const dateStr = post.date
   ? new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
@@ -17,14 +18,14 @@ const dateStr = post.date
 ---
 <Base title={`${post.title} — moonlit`} description={post.excerpt}>
 <main>
-  <article class="page" style="padding-top:46px" {...storyblokEditable(post.editable)}>
+  <article class="page" style="padding-top:46px">
     <span class="sticker">{post.categoryLabel}</span>
     <h1>{post.title}</h1>
     <div class="byl">
       {dateStr && <>scribbled {dateStr}</>}{post.song && <> · scored to "{post.song}"</>}
     </div>
     {post.cover && (
-      <img src={post.cover.filename} alt={post.cover.alt || post.title}
+      <img src={post.cover} alt={post.title}
         style="width:100%;height:auto;margin:26px 0 4px;border:6px solid var(--card);box-shadow:4px 8px 22px rgba(0,0,0,.22)" />
     )}
     <div class="body" set:html={post.bodyHtml}></div>

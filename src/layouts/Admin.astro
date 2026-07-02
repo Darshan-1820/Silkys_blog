@@ -1,0 +1,48 @@
+---
+import '../styles/global.css';
+const { title = 'the writing desk' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title} — moonlit</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body{min-height:100vh;background-image:linear-gradient(rgba(43,40,120,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(43,40,120,.06) 1px,transparent 1px);background-size:26px 26px}
+  .desk{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+  .desk.narrow{max-width:460px;display:flex;flex-direction:column;justify-content:center;min-height:100vh}
+  .panel{position:relative;background:var(--card);border:3px solid var(--ink);
+    box-shadow:6px 9px 0 rgba(34,34,201,.16);padding:34px 30px}
+  .panel .tape{left:50%;top:-13px;transform:translateX(-50%) rotate(-3deg)}
+  .adm-h{font-family:var(--marker);font-size:2.4rem;line-height:1;color:var(--ink)}
+  .adm-sub{font-family:var(--type);color:var(--ink-soft);font-size:.9rem;margin-top:6px}
+  label.fld{display:block;margin:18px 0 0}
+  label.fld > span{display:block;font-family:var(--hand);font-size:.82rem;color:var(--blue);margin-bottom:6px}
+  .in{width:100%;font-family:var(--type);font-size:1rem;padding:11px 13px;background:var(--paper);
+    border:2px solid var(--ink);color:var(--ink);outline:none}
+  .in:focus{border-color:var(--pink);box-shadow:2px 3px 0 rgba(229,20,123,.25)}
+  select.in{cursor:pointer}
+  .btn{font-family:var(--sticker);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+    background:var(--pink);color:#fff;border:2px solid var(--ink);padding:11px 22px;font-size:1rem;
+    box-shadow:3px 4px 0 rgba(0,0,0,.28);transition:transform .12s var(--ease),box-shadow .12s var(--ease)}
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:4px 5px 0 rgba(0,0,0,.3)}
+  .btn:active{transform:translate(1px,2px);box-shadow:1px 2px 0 rgba(0,0,0,.28)}
+  .btn.blue{background:var(--blue)}
+  .btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+  .btn.ghost:hover{color:var(--pink)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .err{margin-top:14px;font-family:var(--type);color:var(--pink-deep);background:rgba(229,20,123,.08);
+    border:1.5px dashed var(--pink);padding:8px 12px;font-size:.88rem}
+  a.link{color:var(--blue);text-decoration:none;border-bottom:1.5px solid var(--blue)}
+  a.link:hover{color:var(--pink);border-color:var(--pink)}
+</style>
+</head>
+<body data-theme="day">
+<slot />
+</body>
+</html>

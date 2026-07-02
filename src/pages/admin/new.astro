@@ -1,0 +1,13 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import Editor from '../../components/Editor.astro';
+import { guard } from '../../lib/auth.js';
+
+const denied = await guard(Astro);
+if (denied) return denied;
+---
+<Admin title="new piece">
+<div class="desk">
+  <Editor />
+</div>
+</Admin>

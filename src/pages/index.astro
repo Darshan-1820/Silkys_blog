@@ -3,7 +3,8 @@ import Base from '../layouts/Base.astro';
 import Doodle from '../components/Doodle.astro';
 import { getAllPosts } from '../lib/posts.js';
 
-const posts = await getAllPosts();
+const { DB } = Astro.locals.runtime.env;
+const posts = await getAllPosts(DB);
 const featured = posts.find((p) => p.featured) || posts[0] || null;
 const count = posts.length;
 ---

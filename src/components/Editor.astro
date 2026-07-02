@@ -1,0 +1,289 @@
+---
+// The writing surface. `post` is a D1 row when editing, or null for a new piece.
+const { post = null } = Astro.props;
+const SECTIONS = [
+  ['blog', 'blog'],
+  ['diary', 'digital diary'],
+  ['short_story', 'short story'],
+  ['incident', 'incident'],
+  ['reflection', 'reflection'],
+];
+const DOODLES = ['star', 'moon', 'eye', 'heart', 'sun'];
+const p = post || {};
+const bodyHtml = p.body_html || '';
+---
+<div id="editor-root" data-post-id={post ? String(post.id) : ''}>
+  <div class="row" style="justify-content:space-between;margin-bottom:20px">
+    <a class="btn ghost" href="/admin">← the desk</a>
+    <div class="row" id="save-bar">
+      <span id="save-status" class="save-status"></span>
+      {post && <button class="btn ghost" type="button" id="btn-delete" style="color:var(--pink-deep)">delete</button>}
+      <button class="btn ghost" type="button" data-save="draft">save draft</button>
+      <button class="btn" type="button" data-save="published">publish ✷</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <input id="f-title" class="in title-in" type="text" placeholder="title…" value={p.title || ''} />
+
+    <div class="meta-grid">
+      <label class="fld"><span>section</span>
+        <select id="f-section" class="in">
+          {SECTIONS.map(([v, l]) => <option value={v} selected={p.section === v}>{l}</option>)}
+        </select>
+      </label>
+      <label class="fld"><span>doodle (the little mark)</span>
+        <select id="f-doodle" class="in">
+          {DOODLES.map((d) => <option value={d} selected={(p.doodle || 'star') === d}>{d}</option>)}
+        </select>
+      </label>
+      <label class="fld"><span>song it's scored to (optional)</span>
+        <input id="f-song" class="in" type="text" value={p.song || ''} placeholder="artist — track" />
+      </label>
+      <label class="fld featured-fld"><span>&nbsp;</span>
+        <label class="check"><input id="f-featured" type="checkbox" checked={!!p.featured} /> feature this on the homepage</label>
+      </label>
+    </div>
+
+    <label class="fld"><span>excerpt — the teaser shown on the wall</span>
+      <textarea id="f-excerpt" class="in" rows="2" placeholder="a line or two…">{p.excerpt || ''}</textarea>
+    </label>
+
+    <label class="fld"><span>cover photo (optional)</span></label>
+    <div class="cover-box" id="cover-box" data-url={p.cover_url || ''}>
+      <img id="cover-preview" src={p.cover_url || ''} alt="" style={p.cover_url ? '' : 'display:none'} />
+      <div class="row">
+        <button class="btn ghost small" type="button" id="btn-cover">choose photo…</button>
+        <button class="btn ghost small" type="button" id="btn-cover-remove" style={p.cover_url ? '' : 'display:none'}>remove</button>
+        <input id="cover-input" type="file" accept="image/*" hidden />
+      </div>
+    </div>
+
+    <label class="fld"><span>the writing</span></label>
+    <div class="toolbar" id="toolbar">
+      <button type="button" data-cmd="bold" title="bold"><b>B</b></button>
+      <button type="button" data-cmd="italic" title="italic"><i>I</i></button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="h2" title="heading">H2</button>
+      <button type="button" data-cmd="h3" title="small heading">H3</button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="bullet" title="bullet list">• list</button>
+      <button type="button" data-cmd="ordered" title="numbered list">1. list</button>
+      <button type="button" data-cmd="quote" title="quote">❝</button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="link" title="link">link</button>
+      <button type="button" data-cmd="image" title="add photo">＋ photo</button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="undo" title="undo">↶</button>
+      <button type="button" data-cmd="redo" title="redo">↷</button>
+    </div>
+    <div id="editor-mount" class="editor-mount"></div>
+    <template id="body-initial" set:html={bodyHtml}></template>
+  </div>
+</div>
+
+<style is:global>
+  .title-in{font-family:var(--marker);font-size:2.2rem;border:none;border-bottom:2.5px dashed rgba(24,22,34,.3);
+    background:transparent;padding:6px 2px;margin-bottom:8px}
+  .title-in:focus{border-color:var(--pink);box-shadow:none}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  @media(max-width:620px){.meta-grid{grid-template-columns:1fr}}
+  .featured-fld{display:flex;align-items:flex-end}
+  .check{display:flex;align-items:center;gap:8px;font-family:var(--type);font-size:.9rem;cursor:pointer;padding-bottom:11px}
+  .check input{width:18px;height:18px;accent-color:var(--pink)}
+  textarea.in{resize:vertical;font-family:var(--type)}
+  .cover-box{border:2px dashed rgba(24,22,34,.3);padding:12px;margin-top:6px}
+  #cover-preview{max-width:100%;max-height:220px;display:block;margin-bottom:10px;border:4px solid var(--card);box-shadow:3px 5px 14px rgba(0,0,0,.18)}
+  .btn.small{padding:7px 13px;font-size:.8rem}
+  .toolbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border:2px solid var(--ink);border-bottom:none;background:var(--paper);padding:7px 9px;margin-top:6px}
+  .toolbar button{font-family:var(--type);cursor:pointer;background:transparent;border:1.5px solid transparent;
+    border-radius:3px;padding:4px 9px;font-size:.9rem;color:var(--ink);line-height:1}
+  .toolbar button:hover{border-color:var(--ink)}
+  .toolbar button.on{background:var(--blue);color:#fff}
+  .toolbar .sep{width:1px;height:20px;background:rgba(24,22,34,.2);margin:0 4px}
+  .editor-mount{border:2px solid var(--ink);background:var(--card);min-height:340px;padding:20px 22px}
+  .ProseMirror{outline:none;font-family:var(--type);font-size:1.02rem;line-height:1.75;color:var(--ink)}
+  .ProseMirror:focus{outline:none}
+  .ProseMirror > *+*{margin-top:.85em}
+  .ProseMirror h2{font-family:var(--marker);font-size:1.9rem;line-height:1.1}
+  .ProseMirror h3{font-family:var(--marker);font-size:1.45rem;line-height:1.15}
+  .ProseMirror ul,.ProseMirror ol{padding-left:1.4em}
+  .ProseMirror blockquote{border-left:3px solid var(--pink);padding-left:14px;color:var(--ink-soft);font-style:italic}
+  .ProseMirror img{max-width:100%;height:auto;border:4px solid var(--paper);box-shadow:3px 5px 14px rgba(0,0,0,.18)}
+  .ProseMirror a{color:var(--blue);text-decoration:underline}
+  .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);float:left;color:rgba(24,22,34,.4);pointer-events:none;height:0}
+  .save-status{font-family:var(--type);font-size:.85rem;color:var(--ink-soft)}
+  .save-status.err{color:var(--pink-deep)}
+</style>
+
+<script>
+  import { Editor } from '@tiptap/core';
+  import StarterKit from '@tiptap/starter-kit';
+  import Image from '@tiptap/extension-image';
+  import Placeholder from '@tiptap/extension-placeholder';
+
+  const root = document.getElementById('editor-root');
+  const mount = document.getElementById('editor-mount');
+  const initial = document.getElementById('body-initial').innerHTML;
+
+  async function uploadImage(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error('upload failed');
+    const { url } = await r.json();
+    return url;
+  }
+
+  let editor;
+  editor = new Editor({
+    element: mount,
+    extensions: [
+      StarterKit,
+      Image,
+      Placeholder.configure({ placeholder: 'start writing… paste from Google Docs, drop in photos — it all just works.' }),
+    ],
+    content: initial || '',
+    editorProps: {
+      handlePaste(view, event) {
+        const items = event.clipboardData && event.clipboardData.items;
+        if (!items) return false;
+        for (const it of items) {
+          if (it.type.startsWith('image/')) {
+            const file = it.getAsFile();
+            if (file) uploadImage(file).then((url) => editor.chain().focus().setImage({ src: url }).run());
+            return true;
+          }
+        }
+        return false;
+      },
+      handleDrop(view, event) {
+        const files = event.dataTransfer && event.dataTransfer.files;
+        if (files && files.length && files[0].type.startsWith('image/')) {
+          event.preventDefault();
+          uploadImage(files[0]).then((url) => editor.chain().focus().setImage({ src: url }).run());
+          return true;
+        }
+        return false;
+      },
+    },
+    onTransaction: () => refreshToolbar(),
+  });
+
+  // --- toolbar ---
+  const toolbar = document.getElementById('toolbar');
+  const imgInput = document.createElement('input');
+  imgInput.type = 'file';
+  imgInput.accept = 'image/*';
+  imgInput.hidden = true;
+  document.body.appendChild(imgInput);
+  imgInput.addEventListener('change', async () => {
+    if (imgInput.files && imgInput.files[0]) {
+      try { const url = await uploadImage(imgInput.files[0]); editor.chain().focus().setImage({ src: url }).run(); }
+      catch { setStatus('image upload failed', true); }
+      imgInput.value = '';
+    }
+  });
+
+  const CMDS = {
+    bold: () => editor.chain().focus().toggleBold().run(),
+    italic: () => editor.chain().focus().toggleItalic().run(),
+    h2: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+    h3: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+    bullet: () => editor.chain().focus().toggleBulletList().run(),
+    ordered: () => editor.chain().focus().toggleOrderedList().run(),
+    quote: () => editor.chain().focus().toggleBlockquote().run(),
+    undo: () => editor.chain().focus().undo().run(),
+    redo: () => editor.chain().focus().redo().run(),
+    image: () => imgInput.click(),
+    link: () => {
+      const prev = editor.getAttributes('link').href || '';
+      const url = window.prompt('link to…', prev);
+      if (url === null) return;
+      if (url === '') editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      else editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    },
+  };
+  toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-cmd]');
+    if (!btn) return;
+    const fn = CMDS[btn.dataset.cmd];
+    if (fn) fn();
+  });
+
+  function refreshToolbar() {
+    if (!editor) return; // onTransaction can fire during construction
+    const states = {
+      bold: editor.isActive('bold'), italic: editor.isActive('italic'),
+      h2: editor.isActive('heading', { level: 2 }), h3: editor.isActive('heading', { level: 3 }),
+      bullet: editor.isActive('bulletList'), ordered: editor.isActive('orderedList'),
+      quote: editor.isActive('blockquote'), link: editor.isActive('link'),
+    };
+    toolbar.querySelectorAll('button[data-cmd]').forEach((b) => {
+      b.classList.toggle('on', !!states[b.dataset.cmd]);
+    });
+  }
+
+  // --- cover photo ---
+  const coverBox = document.getElementById('cover-box');
+  const coverInput = document.getElementById('cover-input');
+  const coverPreview = document.getElementById('cover-preview');
+  const coverRemove = document.getElementById('btn-cover-remove');
+  document.getElementById('btn-cover').addEventListener('click', () => coverInput.click());
+  coverInput.addEventListener('change', async () => {
+    if (!coverInput.files || !coverInput.files[0]) return;
+    try {
+      const url = await uploadImage(coverInput.files[0]);
+      coverBox.dataset.url = url;
+      coverPreview.src = url; coverPreview.style.display = 'block';
+      coverRemove.style.display = '';
+    } catch { setStatus('cover upload failed', true); }
+    coverInput.value = '';
+  });
+  coverRemove.addEventListener('click', () => {
+    coverBox.dataset.url = ''; coverPreview.src = ''; coverPreview.style.display = 'none';
+    coverRemove.style.display = 'none';
+  });
+
+  // --- save / publish ---
+  const statusEl = document.getElementById('save-status');
+  function setStatus(msg, isErr) { statusEl.textContent = msg; statusEl.classList.toggle('err', !!isErr); }
+
+  async function save(status) {
+    const title = document.getElementById('f-title').value.trim();
+    if (!title) { setStatus('give it a title first', true); return; }
+    const payload = {
+      title,
+      section: document.getElementById('f-section').value,
+      doodle: document.getElementById('f-doodle').value,
+      song: document.getElementById('f-song').value,
+      excerpt: document.getElementById('f-excerpt').value,
+      featured: document.getElementById('f-featured').checked,
+      cover_url: coverBox.dataset.url || null,
+      body_html: editor.getHTML(),
+      status,
+    };
+    const id = root.dataset.postId;
+    const url = id ? `/api/posts/${id}` : '/api/posts';
+    setStatus('saving…');
+    const r = await fetch(url, {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); setStatus(e.error || 'save failed', true); return; }
+    window.location.href = '/admin';
+  }
+  document.querySelectorAll('[data-save]').forEach((b) => b.addEventListener('click', () => save(b.dataset.save)));
+
+  // --- delete ---
+  const del = document.getElementById('btn-delete');
+  if (del) del.addEventListener('click', async () => {
+    if (!window.confirm('delete this piece for good?')) return;
+    const r = await fetch(`/api/posts/${root.dataset.postId}`, { method: 'DELETE' });
+    if (r.ok) window.location.href = '/admin';
+    else setStatus('delete failed', true);
+  });
+
+  refreshToolbar();
+</script>

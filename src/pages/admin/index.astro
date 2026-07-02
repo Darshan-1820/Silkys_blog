@@ -1,0 +1,59 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { getPostsForAdmin } from '../../lib/posts.js';
+import { guard } from '../../lib/auth.js';
+
+const denied = await guard(Astro);
+if (denied) return denied;
+
+const { DB } = Astro.locals.runtime.env;
+const posts = await getPostsForAdmin(DB);
+const SECTION_LABEL = { blog: 'blog', diary: 'digital diary', short_story: 'short story', incident: 'incident', reflection: 'reflection' };
+---
+<Admin title="the writing desk">
+<div class="desk">
+  <div class="row" style="justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div class="adm-h">the writing desk</div>
+      <div class="adm-sub">{posts.length} {posts.length === 1 ? 'piece' : 'pieces'} · <a class="link" href="/" target="_blank">view the blog ↗</a></div>
+    </div>
+    <div class="row">
+      <a class="btn" href="/admin/new">+ new piece</a>
+      <form method="post" action="/api/logout"><button class="btn ghost" type="submit">sign out</button></form>
+    </div>
+  </div>
+
+  <div class="panel">
+    {posts.length === 0 ? (
+      <p style="font-family:var(--type);color:var(--ink-soft)">nothing written yet. hit <b>+ new piece</b> to begin.</p>
+    ) : (
+      <table style="width:100%;border-collapse:collapse;font-family:var(--type)">
+        <thead>
+          <tr style="text-align:left;font-family:var(--hand);color:var(--blue);font-size:.8rem">
+            <th style="padding:8px 6px">title</th>
+            <th style="padding:8px 6px">section</th>
+            <th style="padding:8px 6px">status</th>
+            <th style="padding:8px 6px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map((p) => (
+            <tr style="border-top:1.5px solid rgba(24,22,34,.12)">
+              <td style="padding:11px 6px">
+                <b>{p.title}</b>{p.featured ? <span style="color:var(--pink)"> ✷</span> : null}
+              </td>
+              <td style="padding:11px 6px;color:var(--ink-soft)">{SECTION_LABEL[p.section] || p.section}</td>
+              <td style="padding:11px 6px">
+                <span style={`font-family:var(--sticker);font-size:.72rem;padding:2px 8px;color:#fff;background:${p.status === 'published' ? 'var(--blue)' : '#8a8698'}`}>
+                  {p.status}
+                </span>
+              </td>
+              <td style="padding:11px 6px;text-align:right"><a class="link" href={`/admin/edit/${p.id}`}>edit</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</div>
+</Admin>
