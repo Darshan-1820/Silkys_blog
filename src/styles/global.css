@@ -277,6 +277,12 @@
   .body p:first-of-type::first-letter{font-family:var(--marker);font-weight:700;float:left;
     font-size:4.6rem;line-height:.7;padding:10px 12px 0 0;color:var(--pink);text-shadow:1.5px 1.5px 0 var(--blue)}
   .body em{font-family:var(--marker);font-style:normal;font-size:1.3em;color:var(--blue)}
+  /* body images (from the editor) — constrained so big photos never blow up the layout */
+  .body img,.txt-body img{max-width:100%;height:auto;max-height:78vh;object-fit:contain;display:block;
+    margin:26px auto;border:6px solid var(--card);box-shadow:4px 8px 22px rgba(0,0,0,.22)}
+  .body img.img-small,.txt-body img.img-small{max-width:240px}
+  .body img.img-medium,.txt-body img.img-medium{max-width:62%}
+  .body img.img-full,.txt-body img.img-full{max-width:100%}
   .pullq{font-family:var(--marker);font-weight:700;color:var(--pink);font-size:2rem;line-height:1;
     border-left:4px solid var(--blue);padding:6px 0 6px 18px;margin:34px 0;transform:rotate(-.8deg);
     text-shadow:1px 1px 0 var(--blue)}

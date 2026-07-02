@@ -59,7 +59,7 @@ export async function getPostBySlug(db, slug) {
 // Admin: every post (drafts + published), newest activity first.
 export async function getPostsForAdmin(db) {
   const { results } = await db
-    .prepare('SELECT id, slug, title, section, status, featured, updated_at FROM posts ORDER BY updated_at DESC')
+    .prepare('SELECT id, slug, title, section, status, featured, doodle, excerpt, updated_at FROM posts ORDER BY updated_at DESC')
     .all();
   return results || [];
 }

@@ -7,6 +7,8 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   // site: 'https://your-domain.com', // set once the domain is bought (used for SEO/sitemap)
   output: 'server',
+  // Hide the dev-only toolbar (the pill at the bottom of the screen). Never shows on the live site anyway.
+  devToolbar: { enabled: false },
   adapter: cloudflare({
     // Lets `astro dev` talk to a LOCAL D1 + R2 (from wrangler.toml) so we can
     // build and test the whole CMS offline before deploying.

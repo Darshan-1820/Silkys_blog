@@ -3,21 +3,43 @@ import Admin from '../../layouts/Admin.astro';
 const hasError = Astro.url.searchParams.has('error');
 ---
 <Admin title="sign in">
-<div class="desk narrow">
-  <div class="panel">
-    <span class="tape"></span>
-    <div class="adm-h">the writing desk</div>
-    <div class="adm-sub">sign in to write &amp; publish.</div>
+<div class="login-screen">
+  <div class="login-card">
+    <span class="tape lt"></span>
+    <span class="tape rt"></span>
+    <svg class="moon" viewBox="0 0 100 100" fill="var(--blue)" aria-hidden="true"><path d="M64 10 a40 40 0 1 0 6 78 a30 30 0 1 1 -6-78 z"/></svg>
+    <div class="star s1">✦</div><div class="star s2">✷</div>
+
+    <h1 class="login-h">the writing desk</h1>
+    <p class="login-sub">welcome back — sign in to write &amp; publish.</p>
+
     <form method="post" action="/api/login">
-      <label class="fld">
-        <span>password</span>
-        <input class="in" type="password" name="password" autocomplete="current-password" autofocus required />
+      <label class="fld"><span>password</span>
+        <input class="in" type="password" name="password" autocomplete="current-password" autofocus required placeholder="••••••••" />
       </label>
       {hasError && <div class="err">that password didn't match. try again.</div>}
-      <div class="row" style="margin-top:22px">
-        <button class="btn" type="submit">open the desk →</button>
-      </div>
+      <button class="btn login-btn" type="submit">open the desk →</button>
     </form>
+
+    <div class="login-foot">made with love, just for you ✷</div>
   </div>
 </div>
+
+<style>
+  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-card{position:relative;width:100%;max-width:420px;background:var(--card);border:3px solid var(--ink);
+    box-shadow:8px 12px 0 rgba(34,34,201,.16);padding:52px 40px 30px;transform:rotate(-.6deg)}
+  .login-card .tape{position:absolute;width:104px;height:28px;top:-14px}
+  .login-card .lt{left:34px;transform:rotate(-5deg)} .login-card .rt{right:34px;transform:rotate(6deg)}
+  .moon{position:absolute;top:-34px;right:-26px;width:78px;height:78px;transform:rotate(8deg);opacity:.9}
+  .star{position:absolute;color:var(--pink);font-size:1.4rem}
+  .star.s1{bottom:64px;left:-16px;transform:rotate(-10deg)} .star.s2{top:96px;right:-14px;color:var(--blue)}
+  .login-h{font-family:var(--marker);font-size:2.7rem;line-height:1;color:var(--ink);margin-bottom:6px}
+  .login-sub{font-family:var(--type);font-size:.92rem;color:var(--ink-soft);margin-bottom:8px}
+  .login-card .fld > span{font-size:.8rem}
+  .login-card .in{font-size:1.05rem;padding:12px 14px}
+  .login-btn{width:100%;margin-top:20px;padding:13px;font-size:1.05rem}
+  .login-foot{font-family:var(--hand);font-size:.82rem;color:var(--blue);text-align:center;margin-top:22px;opacity:.8}
+  @media(max-width:480px){.login-card{padding:46px 26px 26px} .moon{right:6px}}
+</style>
 </Admin>

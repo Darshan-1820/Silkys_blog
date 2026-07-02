@@ -1,7 +1,8 @@
 ---
 import Admin from '../../layouts/Admin.astro';
-import { getPostsForAdmin } from '../../lib/posts.js';
+import Doodle from '../../components/Doodle.astro';
 import { guard } from '../../lib/auth.js';
+import { getPostsForAdmin } from '../../lib/posts.js';
 
 const denied = await guard(Astro);
 if (denied) return denied;
@@ -9,52 +10,91 @@ if (denied) return denied;
 const { DB } = Astro.locals.runtime.env;
 const posts = await getPostsForAdmin(DB);
 const SECTION_LABEL = { blog: 'blog', diary: 'digital diary', short_story: 'short story', incident: 'incident', reflection: 'reflection' };
+const drafts = posts.filter((p) => p.status !== 'published');
+const published = posts.filter((p) => p.status === 'published');
 ---
 <Admin title="the writing desk">
 <div class="desk">
-  <div class="row" style="justify-content:space-between;margin-bottom:24px">
+  <header class="desk-top">
     <div>
-      <div class="adm-h">the writing desk</div>
-      <div class="adm-sub">{posts.length} {posts.length === 1 ? 'piece' : 'pieces'} · <a class="link" href="/" target="_blank">view the blog ↗</a></div>
+      <h1 class="adm-h">the writing desk</h1>
+      <p class="adm-sub">{posts.length} {posts.length === 1 ? 'piece' : 'pieces'} · <a class="link" href="/" target="_blank">view your blog ↗</a></p>
     </div>
-    <div class="row">
+    <div class="desk-actions">
       <a class="btn ghost" href="/admin/home">▤ your homepage</a>
-      <a class="btn" href="/admin/new">+ new piece</a>
+      <a class="btn" href="/admin/new">✎ new piece</a>
       <form method="post" action="/api/logout"><button class="btn ghost" type="submit">sign out</button></form>
     </div>
-  </div>
+  </header>
 
-  <div class="panel">
-    {posts.length === 0 ? (
-      <p style="font-family:var(--type);color:var(--ink-soft)">nothing written yet. hit <b>+ new piece</b> to begin.</p>
-    ) : (
-      <table style="width:100%;border-collapse:collapse;font-family:var(--type)">
-        <thead>
-          <tr style="text-align:left;font-family:var(--hand);color:var(--blue);font-size:.8rem">
-            <th style="padding:8px 6px">title</th>
-            <th style="padding:8px 6px">section</th>
-            <th style="padding:8px 6px">status</th>
-            <th style="padding:8px 6px"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((p) => (
-            <tr style="border-top:1.5px solid rgba(24,22,34,.12)">
-              <td style="padding:11px 6px">
-                <b>{p.title}</b>{p.featured ? <span style="color:var(--pink)"> ✷</span> : null}
-              </td>
-              <td style="padding:11px 6px;color:var(--ink-soft)">{SECTION_LABEL[p.section] || p.section}</td>
-              <td style="padding:11px 6px">
-                <span style={`font-family:var(--sticker);font-size:.72rem;padding:2px 8px;color:#fff;background:${p.status === 'published' ? 'var(--blue)' : '#8a8698'}`}>
-                  {p.status}
-                </span>
-              </td>
-              <td style="padding:11px 6px;text-align:right"><a class="link" href={`/admin/edit/${p.id}`}>edit</a></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </div>
+  {posts.length === 0 && (
+    <div class="empty-desk">
+      <svg viewBox="0 0 100 100" width="70" fill="var(--blue)"><path d="M64 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/></svg>
+      <h2>a blank page.</h2>
+      <p>nothing written yet — every story starts somewhere.</p>
+      <a class="btn" href="/admin/new">write your first piece →</a>
+    </div>
+  )}
+
+  {drafts.length > 0 && (
+    <section class="group">
+      <div class="group-h"><span class="dot draft"></span> drafts <span class="cnt">{drafts.length}</span></div>
+      <div class="cards">
+        {drafts.map((p) => (
+          <a class="pcard" href={`/admin/edit/${p.id}`}>
+            <div class="pcard-mark"><Doodle name={p.doodle || 'star'} size={52} /></div>
+            <div class="pcard-body">
+              <h3>{p.title || 'untitled'}{p.featured ? <span class="feat">✷</span> : null}</h3>
+              {p.excerpt && <p class="pex">{p.excerpt}</p>}
+              <div class="pcard-foot"><span class="pkind">{SECTION_LABEL[p.section] || p.section}</span><span class="pedit">edit →</span></div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {published.length > 0 && (
+    <section class="group">
+      <div class="group-h"><span class="dot live"></span> published <span class="cnt">{published.length}</span></div>
+      <div class="cards">
+        {published.map((p) => (
+          <a class="pcard" href={`/admin/edit/${p.id}`}>
+            <div class="pcard-mark"><Doodle name={p.doodle || 'star'} size={52} /></div>
+            <div class="pcard-body">
+              <h3>{p.title || 'untitled'}{p.featured ? <span class="feat">✷</span> : null}</h3>
+              {p.excerpt && <p class="pex">{p.excerpt}</p>}
+              <div class="pcard-foot"><span class="pkind">{SECTION_LABEL[p.section] || p.section}</span><span class="pedit">edit →</span></div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 </div>
+
+<style>
+  .desk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:30px}
+  .desk-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .empty-desk{text-align:center;padding:60px 20px;background:var(--card);border:2px dashed rgba(24,22,34,.3)}
+  .empty-desk h2{font-family:var(--marker);font-size:2rem;margin:12px 0 4px}
+  .empty-desk p{font-family:var(--type);color:var(--ink-soft);margin-bottom:20px}
+  .group{margin-bottom:34px}
+  .group-h{display:flex;align-items:center;gap:9px;font-family:var(--hand);font-size:1rem;color:var(--ink);margin-bottom:14px}
+  .group-h .cnt{font-family:var(--sticker);font-size:.72rem;background:var(--ink);color:#fff;padding:2px 8px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block} .dot.draft{background:#b0abbb} .dot.live{background:var(--blue)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .pcard{display:flex;gap:14px;text-decoration:none;color:var(--ink);background:var(--card);border:2px solid var(--ink);
+    padding:16px;box-shadow:4px 6px 0 rgba(34,34,201,.12);transition:transform .12s var(--ease),box-shadow .12s var(--ease)}
+  .pcard:hover{transform:translate(-2px,-2px);box-shadow:6px 8px 0 rgba(34,34,201,.2)}
+  .pcard:nth-child(even){transform:rotate(-.5deg)} .pcard:nth-child(even):hover{transform:translate(-2px,-2px) rotate(-.5deg)}
+  .pcard-mark{flex:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;background:var(--paper);border:1.5px solid rgba(24,22,34,.25)}
+  .pcard-body{min-width:0;flex:1}
+  .pcard h3{font-family:var(--grotesk);font-size:1.08rem;line-height:1.2;display:flex;align-items:center;gap:6px}
+  .pcard .feat{color:var(--pink)}
+  .pex{font-family:var(--type);font-size:.84rem;color:var(--ink-soft);margin-top:5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .pcard-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+  .pkind{font-family:var(--sticker);font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:var(--ink);padding:2px 8px 3px}
+  .pedit{font-family:var(--type);font-size:.82rem;color:var(--blue)}
+</style>
 </Admin>

@@ -120,6 +120,15 @@ const status = p.status || 'draft';
     <button type="button" data-cmd="link" title="link">🔗</button>
   </div>
 
+  <!-- image controls (appear when a photo is clicked) -->
+  <div id="img-bar" class="bubble img-bar">
+    <button type="button" data-size="small" title="small">small</button>
+    <button type="button" data-size="medium" title="medium">medium</button>
+    <button type="button" data-size="full" title="full width">full</button>
+    <span class="ibsep"></span>
+    <button type="button" data-img="remove" class="rm" title="remove photo">✕ remove</button>
+  </div>
+
   <!-- toast -->
   <div id="toast" class="toast"></div>
 </div>
@@ -162,7 +171,10 @@ const status = p.status || 'draft';
   .ProseMirror h3{font-family:var(--marker);font-size:1.5rem;line-height:1.15}
   .ProseMirror ul,.ProseMirror ol{padding-left:1.5em}
   .ProseMirror blockquote{border-left:3px solid var(--pink);padding-left:16px;color:var(--ink-soft);font-style:italic}
-  .ProseMirror img{max-width:100%;height:auto;border:5px solid var(--card);box-shadow:4px 7px 18px rgba(0,0,0,.2);margin:6px 0}
+  .ProseMirror img{max-width:100%;height:auto;max-height:70vh;object-fit:contain;display:block;margin:10px auto;
+    border:5px solid var(--card);box-shadow:4px 7px 18px rgba(0,0,0,.2);cursor:pointer}
+  .ProseMirror img.img-small{max-width:240px} .ProseMirror img.img-medium{max-width:62%} .ProseMirror img.img-full{max-width:100%}
+  .ProseMirror img.ProseMirror-selectednode{outline:3px solid var(--pink);outline-offset:3px}
   .ProseMirror a{color:var(--blue);text-decoration:underline}
   .ProseMirror p.is-editor-empty:first-child::before{content:attr(data-placeholder);float:left;color:rgba(24,22,34,.38);pointer-events:none;height:0;font-style:italic}
   .hint-line{font-family:var(--type);font-size:.82rem;color:var(--ink-soft);margin-top:22px;border-top:1.5px dashed rgba(24,22,34,.16);padding-top:14px;position:relative;z-index:1}
@@ -204,6 +216,10 @@ const status = p.status || 'draft';
   .bubble button{font-family:var(--type);cursor:pointer;background:transparent;border:none;color:#fff;padding:5px 9px;border-radius:4px;font-size:.9rem;line-height:1}
   .bubble button:hover{background:rgba(255,255,255,.16)}
   .bubble button.on{background:var(--pink)}
+  .img-bar button{font-size:.78rem}
+  .img-bar .rm{color:#ff9db3}
+  .img-bar.below{transform:translate(-50%,10px)}
+  .ibsep{width:1px;background:rgba(255,255,255,.25);margin:0 4px}
 
   /* toast */
   .toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);z-index:70;
@@ -217,6 +233,20 @@ const status = p.status || 'draft';
   import StarterKit from '@tiptap/starter-kit';
   import Image from '@tiptap/extension-image';
   import Placeholder from '@tiptap/extension-placeholder';
+
+  // Image + a "size" choice (small / medium / full) stored as data-size + class.
+  const SizedImage = Image.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        size: {
+          default: 'full',
+          parseHTML: (el) => el.getAttribute('data-size') || 'full',
+          renderHTML: (attrs) => ({ 'data-size': attrs.size, class: `img-${attrs.size}` }),
+        },
+      };
+    },
+  });
 
   const root = document.getElementById('editor-root');
   const mount = document.getElementById('editor-mount');
@@ -252,7 +282,7 @@ const status = p.status || 'draft';
     element: mount,
     extensions: [
       StarterKit,
-      Image,
+      SizedImage,
       Placeholder.configure({ placeholder: 'start writing… this page is yours.' }),
     ],
     content: initial || '',
@@ -280,9 +310,9 @@ const status = p.status || 'draft';
       },
     },
     onUpdate: () => scheduleSave(),
-    onSelectionUpdate: () => { refreshToolbar(); updateBubble(); },
+    onSelectionUpdate: () => { refreshToolbar(); updateBubble(); updateImgBar(); },
     onTransaction: () => refreshToolbar(),
-    onBlur: () => setTimeout(() => $('bubble').classList.remove('show'), 160),
+    onBlur: () => setTimeout(() => { $('bubble').classList.remove('show'); $('img-bar').classList.remove('show'); }, 160),
   });
 
   // --- commands (shared by toolbar + bubble) ---
@@ -341,14 +371,42 @@ const status = p.status || 'draft';
   function updateBubble() {
     if (!editor) return;
     const { from, to, empty } = editor.state.selection;
-    if (empty || !editor.isFocused) { bubble.classList.remove('show'); return; }
+    if (empty || !editor.isFocused || editor.isActive('image')) { bubble.classList.remove('show'); return; }
     const a = editor.view.coordsAtPos(from);
     const b = editor.view.coordsAtPos(to);
     bubble.style.top = Math.min(a.top, b.top) + 'px';
     bubble.style.left = (a.left + b.left) / 2 + 'px';
     bubble.classList.add('show');
   }
-  window.addEventListener('scroll', () => { if (bubble.classList.contains('show')) updateBubble(); }, true);
+
+  // image controls: appear when a photo is clicked (selected as a node)
+  const imgBar = $('img-bar');
+  imgBar.addEventListener('mousedown', (e) => e.preventDefault());
+  imgBar.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => {
+    editor.chain().focus().updateAttributes('image', { size: b.dataset.size }).run();
+    updateImgBar();
+  }));
+  imgBar.querySelector('[data-img="remove"]').addEventListener('click', () => {
+    editor.chain().focus().deleteSelection().run();
+    imgBar.classList.remove('show');
+  });
+  function updateImgBar() {
+    if (!editor) return;
+    if (!editor.isActive('image')) { imgBar.classList.remove('show'); return; }
+    const dom = editor.view.nodeDOM(editor.state.selection.from);
+    const el = dom && dom.nodeType === 1 ? dom : dom && dom.parentElement;
+    if (!el || !el.getBoundingClientRect) { imgBar.classList.remove('show'); return; }
+    const r = el.getBoundingClientRect();
+    // if the photo is near the top, drop the bar BELOW it so it stays on screen
+    if (r.top < 70) { imgBar.classList.add('below'); imgBar.style.top = r.bottom + 'px'; }
+    else { imgBar.classList.remove('below'); imgBar.style.top = r.top + 'px'; }
+    imgBar.style.left = Math.max(70, Math.min(window.innerWidth - 70, r.left + r.width / 2)) + 'px';
+    imgBar.classList.add('show');
+  }
+  window.addEventListener('scroll', () => {
+    if (bubble.classList.contains('show')) updateBubble();
+    if (imgBar.classList.contains('show')) updateImgBar();
+  }, true);
 
   // --- cover photo ---
   const coverBox = $('cover-box'), coverInput = $('cover-input'), coverPreview = $('cover-preview'), coverRemove = $('btn-cover-remove');
