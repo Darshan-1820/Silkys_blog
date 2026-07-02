@@ -29,30 +29,6 @@ const {
 
 <!-- night-only ambience -->
 <div class="nightfx" id="fireflies" aria-hidden="true"></div>
-<div class="owl-perch" aria-hidden="true">
-  <span class="owl-hoo">hoo!</span>
-  <svg viewBox="0 0 170 175" width="150" fill="none">
-    <path d="M2 152 Q70 142 168 150" stroke="#5a4a34" stroke-width="9" stroke-linecap="round"/>
-    <path d="M122 150 q16 -18 34 -9 q-11 18 -34 9 z" fill="#3a5a40"/>
-    <path d="M30 152 q-14 -14 -28 -6 q9 16 28 6 z" fill="#3a5a40"/>
-    <g class="owl-body">
-      <ellipse cx="78" cy="95" rx="42" ry="48" fill="#4a4664" stroke="#2b2842" stroke-width="3"/>
-      <ellipse cx="78" cy="104" rx="25" ry="31" fill="#6a6690"/>
-      <path d="M46 56 l-9 -24 l22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
-      <path d="M110 56 l9 -24 l-22 15 z" fill="#4a4664" stroke="#2b2842" stroke-width="2"/>
-      <circle cx="62" cy="83" r="17" fill="#fff"/>
-      <circle cx="94" cy="83" r="17" fill="#fff"/>
-      <circle cx="62" cy="83" r="7.5" fill="#1C1A22"/>
-      <circle cx="94" cy="83" r="7.5" fill="#1C1A22"/>
-      <circle cx="59" cy="80" r="2.6" fill="#FBE08A"/>
-      <circle cx="91" cy="80" r="2.6" fill="#FBE08A"/>
-      <path d="M78 92 l-8 12 l16 0 z" fill="#E0A33A"/>
-      <path d="M64 141 v9 M70 141 v9 M86 141 v9 M92 141 v9" stroke="#E0A33A" stroke-width="3" stroke-linecap="round"/>
-      <circle class="owl-lid" cx="62" cy="83" r="17.5" fill="#4a4664"/>
-      <circle class="owl-lid" cx="94" cy="83" r="17.5" fill="#4a4664"/>
-    </g>
-  </svg>
-</div>
 
 <!-- rough marker filter -->
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -99,7 +75,7 @@ const {
     addEventListener('load',revealVisible);revealVisible();
   }else{rvEls.forEach(el=>el.classList.add('in'));}
 
-  /* ── night ambience + interactivity: fireflies (scatter), eye-follow, owl reactions ── */
+  /* ── night ambience + interactivity: fireflies (scatter) + eye-follow ── */
   (function(){
     const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
     const box=document.getElementById('fireflies');
@@ -124,8 +100,7 @@ const {
     }
     const eyeSvg=document.querySelector('.eye-d');
     const eyeBall=eyeSvg&&eyeSvg.querySelector('.eye-ball');
-    const owl=document.querySelector('.owl-perch');
-    let mx=innerWidth/2,my=innerHeight/2,moved=false,owlCool=0;
+    let mx=innerWidth/2,my=innerHeight/2,moved=false;
     const night=()=>document.body.getAttribute('data-theme')==='night';
     addEventListener('pointermove',e=>{if(e.pointerType&&e.pointerType!=='mouse')return;mx=e.clientX;my=e.clientY;moved=true;},{passive:true});
     function tick(){
@@ -148,15 +123,6 @@ const {
             const dx=(r.left+r.width/2)-mx,dy=(r.top+r.height/2)-my,d=Math.hypot(dx,dy);
             if(d<95){const p=(95-d)/95*42;dot.style.transform='translate('+(dx/(d||1)*p).toFixed(1)+'px,'+(dy/(d||1)*p).toFixed(1)+'px)';}
             else dot.style.transform='none';
-          }
-          if(owl && !owl.classList.contains('flyaway')){
-            const r=owl.getBoundingClientRect();
-            const d=Math.hypot(mx-(r.left+r.width/2),my-(r.top+r.height/2)),now=performance.now();
-            if(d<155 && now-owlCool>2800){
-              owlCool=now;
-              if(Math.random()<0.3){owl.classList.add('flyaway');setTimeout(()=>owl.classList.remove('flyaway'),3400);}
-              else{owl.classList.add('startle');setTimeout(()=>owl.classList.remove('startle'),1000);}
-            }
           }
         }
       }
