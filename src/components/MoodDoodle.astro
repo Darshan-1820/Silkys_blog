@@ -1,0 +1,64 @@
+---
+// Hand-drawn marker face for a mood. Matches the collage look (cobalt outline, ink + magenta marks).
+const { mood = 'calm', size = 54 } = Astro.props;
+const S = { width: size, height: size, viewBox: '0 0 64 64', fill: 'none' };
+const face = 'M32 6 a26 26 0 1 0 .1 0 z';
+const B = 'var(--blue)', I = 'var(--ink)', P = 'var(--pink)';
+---
+<svg {...S} aria-hidden="true">
+  <path d={face} fill="var(--card)" stroke={B} stroke-width="3" stroke-linecap="round"/>
+
+  {mood === 'happy' && (<g>
+    <circle cx="24" cy="28" r="2.6" fill={I}/><circle cx="40" cy="28" r="2.6" fill={I}/>
+    <path d="M22 39 Q32 50 42 39" stroke={I} stroke-width="3" stroke-linecap="round"/>
+    <path d="M17 33 q3 3 6 0M41 33 q3 3 6 0" stroke={P} stroke-width="2" stroke-linecap="round" opacity=".7"/>
+  </g>)}
+
+  {mood === 'calm' && (<g>
+    <path d="M20 30 Q24 33 28 30M36 30 Q40 33 44 30" stroke={I} stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M25 42 Q32 46 39 42" stroke={I} stroke-width="2.8" stroke-linecap="round"/>
+    <circle cx="19" cy="36" r="3" fill={P} opacity=".55"/><circle cx="45" cy="36" r="3" fill={P} opacity=".55"/>
+  </g>)}
+
+  {mood === 'loved' && (<g>
+    <path d="M24 30 C21 26 16 28 18 32 C19 34 24 35 24 35 C24 35 29 34 30 32 C32 28 27 26 24 30 z" fill={P}/>
+    <path d="M40 30 C37 26 32 28 34 32 C35 34 40 35 40 35 C40 35 45 34 46 32 C48 28 43 26 40 30 z" fill={P}/>
+    <path d="M24 43 Q32 49 40 43" stroke={I} stroke-width="2.8" stroke-linecap="round"/>
+  </g>)}
+
+  {mood === 'hopeful' && (<g>
+    <circle cx="24" cy="26" r="2.6" fill={I}/><circle cx="40" cy="26" r="2.6" fill={I}/>
+    <path d="M25 41 Q32 47 39 41" stroke={I} stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M48 12 l1.6 4 l4 1 l-4 1 l-1.6 4 l-1.6 -4 l-4 -1 l4 -1 z" fill={P}/>
+  </g>)}
+
+  {mood === 'meh' && (<g>
+    <circle cx="24" cy="29" r="2.6" fill={I}/><circle cx="40" cy="29" r="2.6" fill={I}/>
+    <path d="M24 43 H40" stroke={I} stroke-width="3" stroke-linecap="round"/>
+  </g>)}
+
+  {mood === 'sad' && (<g>
+    <path d="M20 27 q4 -3 8 0M36 27 q4 -3 8 0" stroke={I} stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="24" cy="31" r="2.4" fill={I}/><circle cx="40" cy="31" r="2.4" fill={I}/>
+    <path d="M23 46 Q32 38 41 46" stroke={I} stroke-width="2.8" stroke-linecap="round"/>
+  </g>)}
+
+  {mood === 'anxious' && (<g>
+    <circle cx="24" cy="29" r="2.4" fill={I}/><circle cx="40" cy="29" r="2.4" fill={I}/>
+    <path d="M22 44 q3 -4 5 0 q2 4 5 0 q3 -4 5 0" stroke={I} stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M50 30 q-3 5 0 7 q3 -2 0 -7 z" fill={B}/>
+  </g>)}
+
+  {mood === 'angry' && (<g>
+    <path d="M19 25 L28 29M45 25 L36 29" stroke={I} stroke-width="2.8" stroke-linecap="round"/>
+    <circle cx="25" cy="32" r="2.4" fill={I}/><circle cx="39" cy="32" r="2.4" fill={I}/>
+    <path d="M24 46 Q32 40 40 46" stroke={P} stroke-width="2.8" stroke-linecap="round"/>
+  </g>)}
+
+  {mood === 'tired' && (<g>
+    <path d="M20 30 h9M35 30 h9" stroke={I} stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M25 43 Q32 46 39 42" stroke={I} stroke-width="2.6" stroke-linecap="round"/>
+    <text x="46" y="18" font-family="Caveat, cursive" font-size="13" fill={P}>z</text>
+    <text x="52" y="12" font-family="Caveat, cursive" font-size="10" fill={P}>z</text>
+  </g>)}
+</svg>

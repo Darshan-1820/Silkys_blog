@@ -159,5 +159,30 @@ const {
   })();
 </script>
 
+<!-- image lightbox: click any gallery photo to view it full-size -->
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <button class="lb-close" type="button" aria-label="close">✕</button>
+  <img class="lb-img" alt="" />
+  <div class="lb-cap"></div>
+</div>
+<script is:inline>
+  (() => {
+    const lb = document.getElementById('lightbox');
+    if (!lb) return;
+    const img = lb.querySelector('.lb-img');
+    const cap = lb.querySelector('.lb-cap');
+    function open(src, caption) {
+      img.src = src; cap.textContent = caption || ''; cap.style.display = caption ? '' : 'none';
+      lb.classList.add('open'); document.body.style.overflow = 'hidden';
+    }
+    function close() { lb.classList.remove('open'); img.src = ''; document.body.style.overflow = ''; }
+    document.addEventListener('click', (e) => {
+      const z = e.target.closest('.zoomable');
+      if (z && z.tagName === 'IMG') { open(z.currentSrc || z.src, z.dataset.caption || z.alt); return; }
+      if (e.target === lb || e.target.closest('.lb-close')) close();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  })();
+</script>
 </body>
 </html>

@@ -15,7 +15,7 @@ const design = section.design || 'polaroid';
       {items.map((it) => (
         <figure class="shot">
           <span class="tapebit"></span>
-          <img src={it.img_url} alt={it.caption || ''} loading="lazy" />
+          <img class="zoomable" src={it.img_url} alt={it.caption || ''} data-caption={it.caption || ''} loading="lazy" />
           {it.caption && <figcaption>{it.caption}</figcaption>}
         </figure>
       ))}
@@ -39,4 +39,5 @@ const design = section.design || 'polaroid';
   .gal-strip img{width:100%;height:200px;object-fit:cover;display:block}
   .gal-strip figcaption{font-family:var(--type);font-size:.82rem;color:var(--paper);text-align:center;padding-top:8px}
   .shot{position:relative}
+  .gal img{cursor:zoom-in}
 </style>

@@ -4,6 +4,8 @@ import { guard } from '../../../lib/auth.js';
 import { getSectionById } from '../../../lib/sections.js';
 import { getPostsForAdmin } from '../../../lib/posts.js';
 import { SECTION_TYPES } from '../../../lib/section-types.js';
+import { MOODS } from '../../../lib/moods.js';
+import MoodDoodle from '../../../components/MoodDoodle.astro';
 
 const denied = await guard(Astro);
 if (denied) return denied;
@@ -17,8 +19,12 @@ const meta = SECTION_TYPES[section.type] || { label: section.type, designs: [] }
 const d = section.data || {};
 const items = d.items || [];
 const lyr = d.lyrics || [];
-// for the text 'plain'/'note' editor: turn stored HTML back into plain paragraphs
-const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<\/?p>/gi, '').trim();
+// text/venting is a feed of dated entries. Back-compat: an old single note -> one entry.
+function htmlToPlain(html) {
+  return (html || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<\/?p>/gi, '').replace(/<[^>]+>/g, '').trim();
+}
+let textEntries = Array.isArray(d.entries) ? d.entries.filter((e) => e && e.body_html) : [];
+if (!textEntries.length && d.body_html) textEntries = [{ date: '', body_html: d.body_html }];
 ---
 <Admin title={`edit — ${meta.label}`}>
 <div class="desk" id="sec-editor" data-id={String(section.id)} data-type={section.type} data-design={section.design || ''}>
@@ -85,25 +91,42 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
       </div>
     )}
 
-    {/* ---- TEXT ---- */}
-    {section.type === 'text' && (
+    {/* ---- QUOTE ---- */}
+    {section.type === 'quote' && (
       <div data-type-fields>
-        <div data-when-quote style={section.design === 'quote' ? '' : 'display:none'}>
-          <label class="fld"><span>the quote</span>
-            <textarea id="f-quote" class="in" rows="3" placeholder="If I was the moon, would you still look for the stars?">{d.quote || ''}</textarea>
-          </label>
-          <label class="fld"><span>— who said it / where it's from</span>
-            <input id="f-by" class="in" type="text" value={d.by || ''} placeholder="from the margins of an old notebook" />
-          </label>
+        <label class="fld"><span>the quote</span>
+          <textarea id="f-quote" class="in" rows="3" placeholder="If I was the moon, would you still look for the stars?">{d.quote || ''}</textarea>
+        </label>
+        <label class="fld"><span>— who said it / where it's from</span>
+          <input id="f-by" class="in" type="text" value={d.by || ''} placeholder="from the margins of an old notebook" />
+        </label>
+      </div>
+    )}
+
+    {/* ---- VENTING (diary feed) ---- */}
+    {section.type === 'venting' && (
+      <div data-type-fields>
+        <label class="fld"><span>heading</span>
+          <input id="f-heading" class="in" type="text" value={section.heading || ''} placeholder="venting place" />
+        </label>
+        <div class="fld"><span>entries — add one each time you vent; the newest shows first</span></div>
+        <div class="items" id="entries">
+          {textEntries.map((e) => (
+            <div class="item-row entry-row" data-date={e.date || ''}>
+              <div class="entry-head">
+                <div class="mood-preview"><MoodDoodle mood={e.mood || 'calm'} size={40} /></div>
+                <label class="mood-label">how are you feeling?
+                  <select class="in mood-sel" data-field="mood">
+                    {MOODS.map((m) => <option value={m.key} selected={(e.mood || 'calm') === m.key}>{m.emoji} {m.label}</option>)}
+                  </select>
+                </label>
+                <button class="btn ghost small danger rm" type="button">✕</button>
+              </div>
+              <textarea class="in" data-field="body" rows="4" placeholder="let it out…">{htmlToPlain(e.body_html)}</textarea>
+            </div>
+          ))}
         </div>
-        <div data-when-text style={section.design === 'quote' ? 'display:none' : ''}>
-          <label class="fld"><span>heading</span>
-            <input id="f-heading" class="in" type="text" value={section.heading || ''} placeholder="a heading (optional)" />
-          </label>
-          <label class="fld"><span>write it out</span>
-            <textarea id="f-body" class="in" rows="10" placeholder="let it out…">{plainBody}</textarea>
-          </label>
-        </div>
+        <button class="btn ghost small" type="button" id="add-entry">+ add an entry</button>
       </div>
     )}
 
@@ -152,7 +175,7 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
                 <>
                   <div class="thumb-up">
                     <img class="thumb" src={it.img_url || ''} style={it.img_url ? '' : 'display:none'} data-field="img_url" data-url={it.img_url || ''} />
-                    <button class="btn ghost small up" type="button">photo…</button>
+                    <button class="btn ghost small up" type="button">change…</button>
                     <input type="file" accept="image/*" hidden />
                   </div>
                   <div class="fields">
@@ -164,7 +187,7 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
             </div>
           ))}
         </div>
-        <button class="btn ghost small" type="button" id="add-item">+ add {section.type === 'gallery' ? 'photo' : section.type === 'books' ? 'book' : 'song'}</button>
+        <button class="btn ghost small" type="button" id="add-item">+ add {section.type === 'gallery' ? 'photos' : section.type === 'books' ? 'book' : 'song'}</button>
       </div>
     )}
 
@@ -188,6 +211,13 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
   .btn.small{padding:5px 10px;font-size:.74rem;box-shadow:2px 2px 0 rgba(0,0,0,.18)}
   .btn.small.danger{color:var(--pink-deep)}
   .item-row .rm{align-self:center}
+  .entry-row{flex-direction:column;align-items:stretch}
+  .entry-row textarea{flex:1;width:100%;resize:vertical}
+  .entry-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .mood-preview{flex:none}
+  .mood-label{display:flex;align-items:center;gap:8px;font-family:var(--type);font-size:.82rem;color:var(--ink-soft)}
+  .mood-sel{width:auto;max-width:190px}
+  .entry-head .rm{margin-left:auto}
   .note-link{font-family:var(--type);font-size:.84rem;color:var(--pink-deep);background:none;border:none;cursor:pointer;padding:0}
   .note-link:hover{text-decoration:underline}
 </style>
@@ -227,15 +257,7 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
 
   // ---- design variant show/hide (text type) ----
   const design = $('f-design');
-  function applyDesign() {
-    if (type === 'text') {
-      const isQuote = design && design.value === 'quote';
-      const q = document.querySelector('[data-when-quote]');
-      const t = document.querySelector('[data-when-text]');
-      if (q) q.style.display = isQuote ? '' : 'none';
-      if (t) t.style.display = isQuote ? 'none' : '';
-    }
-  }
+  function applyDesign() { /* books/gallery design is just a saved value; nothing to toggle */ }
   if (design) design.addEventListener('change', applyDesign);
 
   // ---- featured mode toggle ----
@@ -249,12 +271,56 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
     itemsWrap.addEventListener('click', (e) => {
       const rm = e.target.closest('.rm'); if (rm) rm.closest('.item-row').remove();
     });
+
+    function addGalleryRow(url) {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="img_url" data-url="${url || ''}" src="${url || ''}" style="${url ? '' : 'display:none'}"><button class="btn ghost small up" type="button">change…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="caption" placeholder="caption (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
+      itemsWrap.appendChild(row); wireUpload(row); return row;
+    }
+
+    // Gallery: one "+ add photos" button that lets her pick many at once — each one
+    // is ADDED (never replaces an existing photo).
+    let galleryPicker = null;
+    if (type === 'gallery') {
+      galleryPicker = document.createElement('input');
+      galleryPicker.type = 'file'; galleryPicker.accept = 'image/*'; galleryPicker.multiple = true; galleryPicker.hidden = true;
+      document.body.appendChild(galleryPicker);
+      galleryPicker.addEventListener('change', async () => {
+        const files = Array.from(galleryPicker.files || []);
+        for (const f of files) {
+          setStatus('adding photo…');
+          try { addGalleryRow(await uploadImage(f)); setStatus(''); }
+          catch { setStatus('a photo failed', 'err'); }
+        }
+        galleryPicker.value = '';
+      });
+    }
+
     $('add-item').addEventListener('click', () => {
+      if (type === 'gallery') { galleryPicker.click(); return; }
       const row = document.createElement('div'); row.className = 'item-row';
       if (type === 'books') row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="cover_url" data-url="" style="display:none"><button class="btn ghost small up" type="button">cover…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="title" placeholder="title"><input class="in" data-field="author" placeholder="author"><input class="in" data-field="note" placeholder="a line about it (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
-      else if (type === 'music') row.innerHTML = `<div class="fields"><input class="in" data-field="title" placeholder="song"><input class="in" data-field="artist" placeholder="artist"><input class="in" data-field="url" placeholder="link (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
-      else row.innerHTML = `<div class="thumb-up"><img class="thumb" data-field="img_url" data-url="" style="display:none"><button class="btn ghost small up" type="button">photo…</button><input type="file" accept="image/*" hidden></div><div class="fields"><input class="in" data-field="caption" placeholder="caption (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
+      else row.innerHTML = `<div class="fields"><input class="in" data-field="title" placeholder="song"><input class="in" data-field="artist" placeholder="artist"><input class="in" data-field="url" placeholder="link (optional)"></div><button class="btn ghost small danger rm" type="button">✕</button>`;
       itemsWrap.appendChild(row); wireUpload(row);
+    });
+  }
+
+  // ---- entries (text / venting feed) ----
+  const entriesWrap = $('entries');
+  if (entriesWrap) {
+    const MOODS = [['happy','🙂'],['calm','😌'],['loved','🥰'],['hopeful','✨'],['meh','😐'],['sad','🙁'],['anxious','😰'],['angry','😤'],['tired','😴']];
+    const moodOptions = (sel) => MOODS.map(([k, e]) => `<option value="${k}"${k === (sel || 'calm') ? ' selected' : ''}>${e} ${k}</option>`).join('');
+    entriesWrap.addEventListener('click', (e) => {
+      const rm = e.target.closest('.rm'); if (rm) rm.closest('.entry-row').remove();
+    });
+    $('add-entry').addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'item-row entry-row';
+      row.dataset.date = new Date().toISOString();
+      row.innerHTML = `<div class="entry-head"><label class="mood-label">how are you feeling?<select class="in mood-sel" data-field="mood">${moodOptions('calm')}</select></label><button class="btn ghost small danger rm" type="button">✕</button></div><textarea class="in" data-field="body" rows="4" placeholder="let it out…"></textarea>`;
+      entriesWrap.appendChild(row);
+      row.querySelector('textarea').focus();
     });
   }
 
@@ -281,11 +347,18 @@ const plainBody = (d.body_html || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/
         lyrics: Array.from(document.querySelectorAll('[data-lyr]')).map((i) => i.value.trim()),
       };
     }
-    if (type === 'text') {
-      if (design && design.value === 'quote') return { quote: val('f-quote'), by: val('f-by') };
-      const body = val('f-body').trim();
-      const html = body ? body.split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('') : '';
-      return { body_html: html };
+    if (type === 'quote') return { quote: val('f-quote'), by: val('f-by') };
+    if (type === 'venting') {
+      const entries = [];
+      document.querySelectorAll('#entries .entry-row').forEach((row) => {
+        const ta = row.querySelector('[data-field="body"]');
+        const text = (ta ? ta.value : '').trim();
+        if (!text) return;
+        const html = text.split(/\n{2,}/).map((pp) => `<p>${pp.replace(/\n/g, '<br>')}</p>`).join('');
+        const moodEl = row.querySelector('[data-field="mood"]');
+        entries.push({ date: row.dataset.date || new Date().toISOString(), mood: (moodEl && moodEl.value) || 'calm', body_html: html });
+      });
+      return { entries };
     }
     if (type === 'music') return { items: collectItems(), playlistUrl: val('f-playlist') };
     if (type === 'books' || type === 'gallery') return { items: collectItems() };

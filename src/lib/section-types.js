@@ -6,10 +6,11 @@ export const SECTION_TYPES = {
   books:      { label: "books i'm reading", hint: 'covers or a list of books', designs: [['covers', 'covers'], ['list', 'simple list']] },
   music:      { label: 'music / playlist', hint: 'top songs + an Apple/Spotify playlist', designs: [['cards', 'cards']] },
   gallery:    { label: 'art & photo wall', hint: 'a gallery of images with captions', designs: [['polaroid', 'polaroids'], ['strip', 'film strip']] },
-  text:       { label: 'venting / a note', hint: 'free writing, a note, or a big quote', designs: [['note', 'note'], ['quote', 'big quote'], ['plain', 'plain']] },
+  venting:    { label: 'venting / diary', hint: 'add short dated entries, each with a mood', designs: [['feed', 'feed']] },
+  quote:      { label: 'a big quote', hint: 'one line, front and centre', designs: [['quote', 'quote']] },
 };
 
-export const TYPE_ORDER = ['featured', 'story_wall', 'books', 'music', 'gallery', 'text'];
+export const TYPE_ORDER = ['featured', 'story_wall', 'books', 'music', 'gallery', 'venting', 'quote'];
 
 // Default data + heading when a new section is created.
 export function blankSection(type) {
@@ -25,8 +26,10 @@ export function blankSection(type) {
       return { heading: 'on repeat', subhead: '', design: 'cards', data: { items: [], playlistUrl: '' } };
     case 'gallery':
       return { heading: 'a little gallery', subhead: '', design: 'polaroid', data: { items: [] } };
-    case 'text':
-      return { heading: '', subhead: '', design: 'note', data: { quote: '', by: '', body_html: '' } };
+    case 'venting':
+      return { heading: 'venting place', subhead: '', design: 'feed', data: { entries: [] } };
+    case 'quote':
+      return { heading: '', subhead: '', design: 'quote', data: { quote: '', by: '' } };
     default:
       return { heading: '', subhead: '', design: '', data: {} };
   }

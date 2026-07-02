@@ -7,7 +7,7 @@ import Gallery from './sections/Gallery.astro';
 import TextBlock from './sections/TextBlock.astro';
 
 const { section, posts } = Astro.props;
-const map = { featured: Featured, story_wall: StoryWall, books: Books, music: Music, gallery: Gallery, text: TextBlock };
+const map = { featured: Featured, story_wall: StoryWall, books: Books, music: Music, gallery: Gallery, venting: TextBlock, quote: TextBlock };
 const Cmp = map[section.type];
 ---
 {Cmp && <Cmp section={section} posts={posts} />}

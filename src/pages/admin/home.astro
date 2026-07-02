@@ -9,6 +9,9 @@ if (denied) return denied;
 
 const { DB } = Astro.locals.runtime.env;
 const sections = await getSectionsForAdmin(DB);
+// one section per kind: remember which types already exist
+const existingByType = {};
+for (const s of sections) if (existingByType[s.type] === undefined) existingByType[s.type] = s.id;
 ---
 <Admin title="your homepage">
 <div class="desk">
@@ -26,12 +29,15 @@ const sections = await getSectionsForAdmin(DB);
   <div class="panel" style="margin-bottom:22px">
     <div class="note-h" style="font-size:1.3rem;margin-bottom:12px">+ add a section</div>
     <div class="type-picker">
-      {TYPE_ORDER.map((t) => (
-        <button class="type-btn" type="button" data-type={t}>
-          <b>{SECTION_TYPES[t].label}</b>
-          <span>{SECTION_TYPES[t].hint}</span>
-        </button>
-      ))}
+      {TYPE_ORDER.map((t) => {
+        const has = existingByType[t];
+        return (
+          <button class={`type-btn${has ? ' has' : ''}`} type="button" data-type={t} data-existing={has ? String(has) : ''}>
+            <b>{SECTION_TYPES[t].label}{has ? <span class="added-badge">✓ added</span> : null}</b>
+            <span>{has ? 'open it to add more →' : SECTION_TYPES[t].hint}</span>
+          </button>
+        );
+      })}
     </div>
   </div>
 
@@ -67,6 +73,8 @@ const sections = await getSectionsForAdmin(DB);
   .type-btn{text-align:left;cursor:pointer;background:var(--paper);border:2px solid var(--ink);padding:11px 13px;
     box-shadow:2px 3px 0 rgba(0,0,0,.16);transition:transform .1s,box-shadow .1s}
   .type-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 4px 0 rgba(0,0,0,.2)}
+  .type-btn.has{background:var(--card)}
+  .added-badge{font-family:var(--type);font-size:.64rem;color:var(--blue);margin-left:6px;font-weight:normal}
   .type-btn b{display:block;font-family:var(--grotesk);font-size:.95rem}
   .type-btn span{display:block;font-family:var(--type);font-size:.76rem;color:var(--ink-soft);margin-top:3px}
   .sec-list{display:flex;flex-direction:column;gap:10px}
@@ -89,6 +97,8 @@ const sections = await getSectionsForAdmin(DB);
   }
   // add section -> create draft -> open editor
   document.querySelectorAll('.type-btn').forEach((b) => b.addEventListener('click', async () => {
+    // already have this kind? open it to add more, don't make a duplicate
+    if (b.dataset.existing) { window.location.href = `/admin/section/${b.dataset.existing}`; return; }
     b.disabled = true;
     const r = await post('/api/sections', { type: b.dataset.type });
     if (r.ok) { const { id } = await r.json(); window.location.href = `/admin/section/${id}`; }
