@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import { site } from '../config/site.config.js';
+import ThemeVars from '../components/ThemeVars.astro';
 const { title = 'the writing desk', showNav = true } = Astro.props;
 const path = Astro.url.pathname;
 const isDesk = path === '/admin' || path === '/admin/';
@@ -10,11 +12,12 @@ const isHome = path.startsWith('/admin/home') || path.startsWith('/admin/section
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{title} — moonlit</title>
+<title>{title} — {site.brand.name}</title>
 <meta name="robots" content="noindex, nofollow">
+<ThemeVars />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href={site.fonts.googleUrl} rel="stylesheet">
 <style is:global>
   body{min-height:100vh;background-image:linear-gradient(rgba(43,40,120,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(43,40,120,.06) 1px,transparent 1px);background-size:26px 26px}
   .admin-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
@@ -63,7 +66,7 @@ const isHome = path.startsWith('/admin/home') || path.startsWith('/admin/section
 <body data-theme="day">
 {showNav && (
   <nav class="admin-nav">
-    <a class="an-brand" href="/admin">moonlit<span> · studio</span></a>
+    <a class="an-brand" href="/admin">{site.brand.name}<span> · studio</span></a>
     <div class="an-links">
       <a href="/admin" class={isDesk ? 'on' : ''}>✎ the desk</a>
       <a href="/admin/home" class={isHome ? 'on' : ''}>▤ your homepage</a>

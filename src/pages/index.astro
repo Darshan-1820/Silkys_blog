@@ -5,6 +5,7 @@ import { getAllPosts } from '../lib/posts.js';
 import { getSections, getSectionsForAdmin } from '../lib/sections.js';
 import { isAuthed } from '../lib/auth.js';
 import { websiteLd } from '../lib/seo.js';
+import { site } from '../config/site.config.js';
 
 const { DB } = Astro.locals.runtime.env;
 const preview = Astro.url.searchParams.has('preview') && (await isAuthed(Astro));
@@ -24,7 +25,8 @@ Astro.response.headers.set(
 <main id="home">
   {sections.map((section) => <SectionRenderer section={section} posts={posts} />)}
 
-  <!-- SUBSCRIBE (site feature, always at the foot) -->
+  <!-- SUBSCRIBE (site feature — toggle in site.config) -->
+  {site.features.newsletter && (
   <section class="wrap" id="sub">
     <span class="tape" style="top:-13px;left:60px;transform:rotate(-6deg)"></span>
     <span class="tape" style="top:-13px;right:80px;transform:rotate(7deg)"></span>
@@ -39,5 +41,6 @@ Astro.response.headers.set(
       </form>
     </div>
   </section>
+  )}
 </main>
 </Base>

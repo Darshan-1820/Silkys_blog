@@ -1,0 +1,11 @@
+---
+// Injects the theme's design tokens (colours + fonts) as CSS variables, from
+// the per-client config. global.css holds structure; this holds identity.
+import { site } from '../config/site.config.js';
+const f = site.fonts;
+const c = (x) =>
+  `--paper:${x.paper};--ink:${x.ink};--ink-soft:${x.inkSoft};--pink:${x.pink};--pink-deep:${x.pinkDeep};--blue:${x.blue};--blue-deep:${x.blueDeep};--card:${x.card};--tape:${x.tape}`;
+const fonts = `--marker:${f.marker};--hand:${f.hand};--sticker:${f.sticker};--type:${f.body};--grotesk:${f.grotesk}`;
+const css = `:root{${c(site.colors.day)};${fonts}}[data-theme="night"]{${c(site.colors.night)}}`;
+---
+<style is:inline set:html={css}></style>

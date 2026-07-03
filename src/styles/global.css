@@ -1,32 +1,8 @@
-:root{
-    --paper:#EEE9DB;          /* warm off-white journal paper */
-    --grid:transparent;       /* grid removed for review — set to rgba(43,40,120,.10) to restore */
-    --ink:#181622;
-    --ink-soft:#4a4654;
-    --pink:#E5147B;           /* hot magenta marker */
-    --pink-deep:#B30E5F;
-    --blue:#2222C9;           /* electric cobalt marker */
-    --blue-deep:#16168f;
-    --tape:rgba(244,224,120,.55);
-    --card:#FBF8EE;
-    --marker:"Caveat",cursive;
-    --hand:"Gloria Hallelujah",cursive;
-    --sticker:"Anton",sans-serif;
-    --type:"Courier Prime",monospace;
-    --grotesk:"Space Grotesk",sans-serif;
+  /* Brand tokens (colours + fonts) come from ThemeVars.astro <- src/config/site.config.js.
+     This file holds STRUCTURE only, so the platform re-themes per client via config. */
+  :root{
+    --grid:transparent;       /* grid off for review — set to rgba(43,40,120,.10) to restore */
     --ease:cubic-bezier(.16,.84,.44,1);
-  }
-  [data-theme="night"]{
-    --paper:#1C1A22;          /* warm charcoal — NOT pure black (avoids halation/vibration) */
-    --grid:transparent;
-    --ink:#E8E3D6;            /* warm off-white — NOT pure white (less glare) */
-    --ink-soft:#A8A2B0;
-    --pink:#EF85AE;           /* desaturated rose (was neon #FF3D9A — it buzzed) */
-    --pink-deep:#F0A0BF;
-    --blue:#A6ABF0;           /* lightened periwinkle (was saturated #6A6AFF — it vibrated) */
-    --blue-deep:#BBBFF6;
-    --tape:rgba(244,224,120,.18);
-    --card:#272430;           /* elevated surface — lighter than bg, per Material */
   }
   /* dark mode: drop the colored offset shadow on titles (saturated adjacency vibrates) */
   [data-theme="night"] .brand,

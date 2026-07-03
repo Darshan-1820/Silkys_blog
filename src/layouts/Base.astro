@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import { SITE, abs } from '../lib/seo.js';
+import { site } from '../config/site.config.js';
+import ThemeVars from '../components/ThemeVars.astro';
 
 const {
   title = SITE.title,
@@ -49,9 +51,10 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 <meta name="twitter:description" content={description}>
 <meta name="twitter:image" content={ogImage}>
 
+<ThemeVars />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Gloria+Hallelujah&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href={site.fonts.googleUrl} rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title={SITE.name} href={abs(Astro, '/rss.xml')}>
 {jsonld.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
 </head>
@@ -65,7 +68,7 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 <div id="progress"></div>
 
 <!-- night-only ambience -->
-<div class="nightfx" id="fireflies" aria-hidden="true"></div>
+{site.features.fireflies && <div class="nightfx" id="fireflies" aria-hidden="true"></div>}
 
 <!-- rough marker filter -->
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -75,23 +78,20 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 
 <header class="mast">
   <div class="wrap mast-inner">
-    <a class="brand" href="/" style="text-decoration:none">moonlit ✷</a>
+    <a class="brand" href="/" style="text-decoration:none">{site.brand.name} {site.brand.mark}</a>
     <nav><ul>
-      <li><a href="/#wall">Stories</a></li>
-      <li><a href="/#wall">Incidents</a></li>
-      <li><a href="/#wall">Late nights</a></li>
-      <li><a href="/#sub">About</a></li>
+      {site.nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
     </ul></nav>
-    <button class="theme-btn" id="themeBtn">☾ night</button>
+    {site.features.nightMode && <button class="theme-btn" id="themeBtn">☾ night</button>}
   </div>
 </header>
 
 <slot />
 
 <footer>
-  <a class="brand" href="/" style="text-decoration:none">moonlit ✷</a>
-  <p>written by hand · read by lamplight · 2026</p>
-  <p style="margin-top:8px;font-family:var(--grotesk);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)">Created by <span style="color:var(--pink)">Darshan</span></p>
+  <a class="brand" href="/" style="text-decoration:none">{site.brand.name} {site.brand.mark}</a>
+  <p>{site.brand.footerLine} · {site.brand.year}</p>
+  {site.brand.credit && <p style="margin-top:8px;font-family:var(--grotesk);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)">Created by <span style="color:var(--pink)">{site.brand.credit}</span></p>}
 </footer>
 
 <script is:inline>

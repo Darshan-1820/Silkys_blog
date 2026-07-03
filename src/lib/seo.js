@@ -2,14 +2,16 @@
 // (set in astro.config once the domain is bought) or fall back to the request origin,
 // so canonical/OG/sitemap all work locally now and in production later.
 
+import { site } from '../config/site.config.js';
+
 export const SITE = {
-  name: 'moonlit',
-  title: 'moonlit — stories, scribbled',
-  description: 'short stories, incidents & reflections — scribbled by hand, read by lamplight.',
-  locale: 'en_US',
-  author: 'Silky',
-  themeColor: '#EEE9DB',
-  defaultImage: '/og-default.png',
+  name: site.brand.name,
+  title: `${site.brand.name} — ${site.brand.tagline}`,
+  description: site.brand.description,
+  locale: site.seo.locale,
+  author: site.brand.author,
+  themeColor: site.seo.themeColor,
+  defaultImage: site.seo.ogImage,
 };
 
 export function baseUrl(Astro) {
