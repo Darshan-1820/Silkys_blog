@@ -1,0 +1,70 @@
+---
+// Share button. On phones it opens the native share sheet (Instagram, WhatsApp,
+// everything). On desktop it shows a small menu of link-share targets + copy link.
+// NB: Instagram has no web link-share API — the native sheet on mobile is the path.
+const { url, title = '' } = Astro.props;
+---
+<div class="share" data-url={url} data-title={title}>
+  <button class="share-btn" type="button" aria-haspopup="true" aria-expanded="false">share ↗</button>
+  <div class="share-menu" hidden role="menu">
+    <button type="button" data-share="copy">🔗 copy link</button>
+    <a data-share="x" target="_blank" rel="noopener">✦ X / Twitter</a>
+    <a data-share="wa" target="_blank" rel="noopener">✦ WhatsApp</a>
+    <a data-share="fb" target="_blank" rel="noopener">✦ Facebook</a>
+    <a data-share="in" target="_blank" rel="noopener">✦ LinkedIn</a>
+  </div>
+</div>
+
+<style>
+  .share{position:relative;display:inline-block}
+  .share-btn{font-family:var(--type);font-size:.82rem;cursor:pointer;background:var(--card);
+    border:2px solid var(--ink);padding:5px 12px;color:var(--ink);box-shadow:2px 2px 0 rgba(0,0,0,.16);
+    transition:transform .1s,box-shadow .1s;line-height:1}
+  .share-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(0,0,0,.2)}
+  .share-menu{position:absolute;z-index:40;top:calc(100% + 8px);left:0;min-width:180px;
+    background:var(--card);border:2px solid var(--ink);box-shadow:4px 6px 0 rgba(34,34,201,.16);
+    padding:6px;display:flex;flex-direction:column;gap:2px}
+  .share-menu button,.share-menu a{font-family:var(--type);font-size:.86rem;text-align:left;text-decoration:none;
+    color:var(--ink);background:none;border:none;cursor:pointer;padding:8px 10px;border-radius:3px}
+  .share-menu button:hover,.share-menu a:hover{background:var(--paper);color:var(--pink)}
+  @media(max-width:520px){.share-menu{left:auto;right:0}}
+</style>
+
+<script>
+  document.querySelectorAll('.share').forEach((box) => {
+    const url = box.dataset.url;
+    const title = box.dataset.title || '';
+    const btn = box.querySelector('.share-btn');
+    const menu = box.querySelector('.share-menu');
+    const enc = encodeURIComponent;
+    const links = {
+      x: `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`,
+      wa: `https://wa.me/?text=${enc(title + ' ' + url)}`,
+      fb: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+      in: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`,
+    };
+    for (const [k, href] of Object.entries(links)) {
+      const a = menu.querySelector(`[data-share="${k}"]`);
+      if (a) a.href = href;
+    }
+    btn.addEventListener('click', async () => {
+      if (navigator.share) {
+        try { await navigator.share({ title, url }); return; } catch {}
+      }
+      const open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    const copyBtn = menu.querySelector('[data-share="copy"]');
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = '✓ copied!';
+        setTimeout(() => { copyBtn.textContent = '🔗 copy link'; }, 1500);
+      } catch {}
+    });
+    document.addEventListener('click', (e) => {
+      if (!box.contains(e.target)) { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    });
+  });
+</script>

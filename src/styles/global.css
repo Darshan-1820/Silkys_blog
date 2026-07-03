@@ -78,6 +78,9 @@
   .crumbs a:hover{color:var(--pink)}
   .crumbs span{margin:0 5px}
   .crumb-cur{color:var(--ink-soft)}
+  /* post footer: interactions + share */
+  .post-share{display:flex;align-items:center;gap:10px;margin-top:16px}
+  .ps-label{font-family:var(--hand);font-size:.82rem;color:var(--blue)}
 
   /* ── MASTHEAD ── */
   header.mast{position:sticky;top:0;z-index:80;

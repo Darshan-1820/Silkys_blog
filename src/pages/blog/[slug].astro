@@ -2,9 +2,10 @@
 import Base from '../../layouts/Base.astro';
 import Doodle from '../../components/Doodle.astro';
 import Interactions from '../../components/Interactions.astro';
+import Share from '../../components/Share.astro';
 import { getAllPosts, getPostBySlug, getPostForPreview } from '../../lib/posts.js';
 import { isAuthed } from '../../lib/auth.js';
-import { articleLd, breadcrumbLd } from '../../lib/seo.js';
+import { articleLd, breadcrumbLd, abs } from '../../lib/seo.js';
 
 const { DB } = Astro.locals.runtime.env;
 const { slug } = Astro.params;
@@ -56,7 +57,10 @@ const jsonld = [articleLd(Astro, post), breadcrumbLd(Astro, crumbs)];
         style="width:100%;height:auto;margin:26px 0 4px;border:6px solid var(--card);box-shadow:4px 8px 22px rgba(0,0,0,.22)" />
     )}
     <div class="body" set:html={post.bodyHtml}></div>
-    <Interactions target={`post:${post.id}`} />
+    <div class="post-foot">
+      <Interactions target={`post:${post.id}`} />
+      <div class="post-share"><span class="ps-label">pass it on ↗</span><Share url={abs(Astro, `/blog/${post.slug}`)} title={post.title} /></div>
+    </div>
     <p style="margin-top:46px"><a class="back-btn" href="/" style="text-decoration:none">← back to the wall</a></p>
   </article>
 
