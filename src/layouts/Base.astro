@@ -52,13 +52,18 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 <meta name="twitter:image" content={ogImage}>
 
 <ThemeVars />
+<script is:inline>
+  // Apply the saved theme before first paint (no flash) — persists across page loads.
+  try { document.documentElement.dataset.theme = localStorage.getItem('theme') || 'day'; }
+  catch (e) { document.documentElement.dataset.theme = 'day'; }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href={site.fonts.googleUrl} rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title={SITE.name} href={abs(Astro, '/rss.xml')}>
 {jsonld.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
 </head>
-<body data-theme="day">
+<body>
 {preview && (
   <div class="preview-bar">
     <span>👁 preview — how it looks on the blog · <b>not published yet</b></span>
@@ -96,11 +101,16 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 
 <script is:inline>
   const themeBtn=document.getElementById('themeBtn');
-  themeBtn.onclick=()=>{
-    const night=document.body.getAttribute('data-theme')==='night';
-    document.body.setAttribute('data-theme',night?'day':'night');
-    themeBtn.textContent=night?'☾ night':'☀ day';
-  };
+  if(themeBtn){
+    const root=document.documentElement;
+    themeBtn.textContent = root.getAttribute('data-theme')==='night' ? '☀ day' : '☾ night';
+    themeBtn.onclick=()=>{
+      const next = root.getAttribute('data-theme')==='night' ? 'day' : 'night';
+      root.setAttribute('data-theme',next);
+      try{ localStorage.setItem('theme',next); }catch(e){}
+      themeBtn.textContent = next==='night' ? '☀ day' : '☾ night';
+    };
+  }
   const prog=document.getElementById('progress');
   window.addEventListener('scroll',()=>{const h=document.documentElement;
     prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
@@ -138,7 +148,7 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
     const eyeSvg=document.querySelector('.eye-d');
     const eyeBall=eyeSvg&&eyeSvg.querySelector('.eye-ball');
     let mx=innerWidth/2,my=innerHeight/2,moved=false;
-    const night=()=>document.body.getAttribute('data-theme')==='night';
+    const night=()=>document.documentElement.getAttribute('data-theme')==='night';
     addEventListener('pointermove',e=>{if(e.pointerType&&e.pointerType!=='mouse')return;mx=e.clientX;my=e.clientY;moved=true;},{passive:true});
     function tick(){
       if(moved){
