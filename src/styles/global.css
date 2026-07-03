@@ -96,6 +96,13 @@
   /* eye follows cursor (smoothly) */
   .eye-ball{transition:transform .12s ease-out}
 
+  /* breadcrumbs */
+  .crumbs{font-family:var(--type);font-size:.8rem;color:var(--ink-soft);margin-bottom:14px}
+  .crumbs a{color:var(--blue);text-decoration:none}
+  .crumbs a:hover{color:var(--pink)}
+  .crumbs span{margin:0 5px}
+  .crumb-cur{color:var(--ink-soft)}
+
   /* ── MASTHEAD ── */
   header.mast{position:sticky;top:0;z-index:80;
     background:color-mix(in srgb,var(--paper) 85%,transparent);

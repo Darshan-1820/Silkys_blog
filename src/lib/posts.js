@@ -1,5 +1,6 @@
 // Posts now live in Cloudflare D1 (our own database) — no third-party CMS.
 // Every page passes in the D1 binding: `Astro.locals.runtime.env.DB`.
+import { lazyImages } from './html.js';
 
 // Section value -> label shown on stickers/cards
 const CATEGORY_LABEL = {
@@ -32,7 +33,8 @@ function toPost(row) {
     songUrl: row.song_url || '',
     cover: row.cover_url || null, // now a plain URL string (was a Storyblok object)
     date: row.published_at || row.created_at,
-    bodyHtml: row.body_html || '',
+    updatedAt: row.updated_at || row.published_at || row.created_at,
+    bodyHtml: lazyImages(row.body_html || ''),
     readTime: Math.max(1, Math.round(countWords(row.body_html) / 200)),
   };
 }

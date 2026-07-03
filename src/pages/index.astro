@@ -4,6 +4,7 @@ import SectionRenderer from '../components/SectionRenderer.astro';
 import { getAllPosts } from '../lib/posts.js';
 import { getSections, getSectionsForAdmin } from '../lib/sections.js';
 import { isAuthed } from '../lib/auth.js';
+import { websiteLd } from '../lib/seo.js';
 
 const { DB } = Astro.locals.runtime.env;
 const preview = Astro.url.searchParams.has('preview') && (await isAuthed(Astro));
@@ -11,8 +12,15 @@ const [posts, sections] = await Promise.all([
   getAllPosts(DB),
   preview ? getSectionsForAdmin(DB) : getSections(DB),
 ]);
+
+// Edge-cache the public page briefly (fast for readers, fresh within ~1 min);
+// never cache the authenticated preview.
+Astro.response.headers.set(
+  'cache-control',
+  preview ? 'private, no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+);
 ---
-<Base preview={preview}>
+<Base preview={preview} jsonld={[websiteLd(Astro)]}>
 <main id="home">
   {sections.map((section) => <SectionRenderer section={section} posts={posts} />)}
 

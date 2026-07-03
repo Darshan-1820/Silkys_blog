@@ -4,31 +4,55 @@ import Doodle from '../../components/Doodle.astro';
 import Interactions from '../../components/Interactions.astro';
 import { getAllPosts, getPostBySlug, getPostForPreview } from '../../lib/posts.js';
 import { isAuthed } from '../../lib/auth.js';
+import { articleLd, breadcrumbLd } from '../../lib/seo.js';
 
 const { DB } = Astro.locals.runtime.env;
 const { slug } = Astro.params;
 const preview = Astro.url.searchParams.has('preview') && (await isAuthed(Astro));
 const post = preview ? await getPostForPreview(DB, slug) : await getPostBySlug(DB, slug);
 
-// Unknown or unpublished slug -> proper 404 (good for SEO, avoids blank pages).
-if (!post) return new Response(null, { status: 404 });
+// Unknown or unpublished slug -> render the styled 404 (with a 404 status).
+if (!post) return Astro.rewrite('/404');
+
+Astro.response.headers.set(
+  'cache-control',
+  preview ? 'private, no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+);
 
 const posts = await getAllPosts(DB);
 const others = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
 const dateStr = post.date
   ? new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
   : '';
+const crumbs = [
+  { name: 'home', path: '/' },
+  { name: post.categoryLabel, path: '/' },
+  { name: post.title, path: `/blog/${post.slug}` },
+];
+const jsonld = [articleLd(Astro, post), breadcrumbLd(Astro, crumbs)];
 ---
-<Base title={`${post.title} — moonlit`} description={post.excerpt}>
+<Base
+  title={`${post.title} — moonlit`}
+  description={post.excerpt}
+  type="article"
+  image={post.cover || undefined}
+  published={post.date}
+  modified={post.updatedAt}
+  section={post.categoryLabel}
+  jsonld={jsonld}
+>
 <main>
   <article class="page" style="padding-top:46px">
+    <nav class="crumbs" aria-label="breadcrumb">
+      <a href="/">home</a> <span>›</span> <span class="crumb-cur">{post.categoryLabel}</span>
+    </nav>
     <span class="sticker">{post.categoryLabel}</span>
     <h1>{post.title}</h1>
     <div class="byl">
       {dateStr && <>scribbled {dateStr}</>}{post.song && <> · scored to "{post.song}"</>}
     </div>
     {post.cover && (
-      <img src={post.cover} alt={post.title}
+      <img src={post.cover} alt={post.title} width="820" height="460" fetchpriority="high" decoding="async"
         style="width:100%;height:auto;margin:26px 0 4px;border:6px solid var(--card);box-shadow:4px 8px 22px rgba(0,0,0,.22)" />
     )}
     <div class="body" set:html={post.bodyHtml}></div>

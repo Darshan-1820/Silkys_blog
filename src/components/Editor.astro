@@ -127,6 +127,7 @@ const status = p.status || 'draft';
     <button type="button" data-size="medium" title="medium">medium</button>
     <button type="button" data-size="full" title="full width">full</button>
     <span class="ibsep"></span>
+    <button type="button" data-img="alt" title="describe the photo (accessibility + SEO)">alt</button>
     <button type="button" data-img="remove" class="rm" title="remove photo">✕ remove</button>
   </div>
 
@@ -234,6 +235,7 @@ const status = p.status || 'draft';
   import StarterKit from '@tiptap/starter-kit';
   import Image from '@tiptap/extension-image';
   import Placeholder from '@tiptap/extension-placeholder';
+  import { compressImage } from '../lib/img.js';
 
   // Image + a "size" choice (small / medium / full) stored as data-size + class.
   const SizedImage = Image.extend({
@@ -271,6 +273,7 @@ const status = p.status || 'draft';
   }
 
   async function uploadImage(file) {
+    file = await compressImage(file);
     const fd = new FormData(); fd.append('file', file);
     const r = await fetch('/api/upload', { method: 'POST', body: fd });
     if (!r.ok) throw new Error('upload failed');
@@ -387,6 +390,11 @@ const status = p.status || 'draft';
     editor.chain().focus().updateAttributes('image', { size: b.dataset.size }).run();
     updateImgBar();
   }));
+  imgBar.querySelector('[data-img="alt"]').addEventListener('click', () => {
+    const cur = editor.getAttributes('image').alt || '';
+    const alt = window.prompt('describe this photo (for screen readers & search):', cur);
+    if (alt !== null) editor.chain().focus().updateAttributes('image', { alt }).run();
+  });
   imgBar.querySelector('[data-img="remove"]').addEventListener('click', () => {
     editor.chain().focus().deleteSelection().run();
     imgBar.classList.remove('show');

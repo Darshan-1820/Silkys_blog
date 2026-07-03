@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+Astro.response.status = 404;
+---
+<Base title="not found — moonlit" description="this page drifted off." noindex={true}>
+<main class="wrap" style="min-height:56vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 20px">
+  <svg width="88" height="88" viewBox="0 0 100 100" fill="var(--blue)" aria-hidden="true" style="transform:rotate(-8deg)"><path d="M64 12 a36 36 0 1 0 4 70 a28 28 0 1 1 -4-70 z"/></svg>
+  <h1 style="font-family:var(--marker);font-size:2.7rem;line-height:1.05;margin:16px 0 6px">this page drifted off.</h1>
+  <p style="font-family:var(--type);color:var(--ink-soft);margin-bottom:24px">the link might be old, or it was never scribbled down.</p>
+  <a class="read-cta" href="/" style="display:inline-block;text-decoration:none">← back to the wall</a>
+</main>
+</Base>
