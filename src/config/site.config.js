@@ -44,7 +44,7 @@ export const site = {
     { label: 'Stories', href: '/#wall' },
     { label: 'Incidents', href: '/#wall' },
     { label: 'Late nights', href: '/#wall' },
-    { label: 'About', href: '/#sub' },
+    { label: 'About', href: '/about' },
   ],
 
   // Turn whole features on/off per client.
