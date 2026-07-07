@@ -4,28 +4,30 @@ import { site } from '../config/site.config.js';
 import { abs } from '../lib/seo.js';
 
 // ─────────────────────────────────────────────────────────────────────────
-//  ABOUT — "Silky's desk". A warm top-down desk packed with her things.
-//  Click an object → a handwritten note flips up with her favourites.
+//  ABOUT — "Silky's diary wall". Built entirely from the site's own collage
+//  language (paper, tape, polaroids, marker doodles) so it feels native, not
+//  bolted-on. Tap a favourite → a handwritten note flips up.
 //
-//  Object art: Microsoft Fluent Emoji (3D) — MIT licensed, free for
-//  commercial use. Files in /public/desk/.
-//
-//  ⚑ EDIT HER REAL FAVOURITES in the `favs` block below (placeholders now).
+//  ⚑ EDIT HER REAL WORDS: `diary`, `now`, and `favs` below (placeholders now).
 // ─────────────────────────────────────────────────────────────────────────
 
 const about = { nick: 'Silky', tag: 'writer · reader · overthinker-in-chief' };
 
+const diary = [
+  "Hey. I'm Shreya — but everyone just calls me Silky.",
+  "I'm a writer, a compulsive reader, and a professional overthinker (it's on the business card, right under “dramatic pauses”). I grew up in Patna finding books boring if they didn't have pictures — and somehow became the kind of person who stays up till 2am to finish a series she swore she'd shut at midnight.",
+  "Somewhere along the way I started writing my own. Fiction, mostly. This little corner is where the leftover words end up — the stories, the incidents, the thoughts that were too loud to sleep on.",
+  "I don't think the good stuff is built from résumés and job titles. It's curiosity, consistency, and the courage to keep showing up. So — here I am. Showing up. Again.",
+];
+
+const now = [
+  { k: 'reading', v: 'anything with a body count and a heartbreak' },
+  { k: 'writing', v: 'a story I keep almost finishing' },
+  { k: 'drinking', v: 'coffee, cold again' },
+  { k: 'avoiding', v: 'the draft that’s due' },
+];
+
 const favs = {
-  about: {
-    title: "that's me",
-    note: 'Shreya — but everyone says Silky',
-    items: [
-      'writer, reader, professional overthinker',
-      'grew up in Patna hating books without pictures',
-      'now up till 2am finishing book series',
-      'here for the stories too loud to sleep on',
-    ],
-  },
   smokes: { title: 'the smokes', note: "don't tell mum",
     items: ['Marlboro Red — the classic', 'Marlboro Advance', 'Classic Milds — daytime', 'a stolen one always tastes better'] },
   drinks: { title: 'the drinks', note: 'editing fuel',
@@ -40,27 +42,6 @@ const favs = {
     items: ['white tulips', "baby's breath", 'sunflowers — on good days', 'carnations', 'dried roses'] },
 };
 
-// Every object on the desk. `cat` = clickable (opens favourites). No `cat` = décor.
-const objects = [
-  { img: 'coffee.png',    x: 24, y: 3,  r: -5, w: 9,  alt: 'coffee' },
-  { img: 'lipstick.png',  x: 34, y: 1,  r: 18, w: 5,  alt: 'lipstick' },
-  { img: 'candle.png',    x: 46, y: 2,  r: 0,  w: 7,  alt: 'candle' },
-  { img: 'camera.png',    x: 82, y: 5,  r: -8, w: 14, alt: 'camera' },
-  { img: 'wine.png',      x: 66, y: 46, r: -4, w: 8,  alt: 'wine glass' },
-  { img: 'pen.png',       x: 45, y: 47, r: -28, w: 15, alt: 'pen' },
-  { img: 'notebook.png',  x: 37, y: 58, r: 4,  w: 18, alt: 'notebook' },
-  { img: 'rose.png',      x: 85, y: 62, r: -12, w: 9, alt: 'rose' },
-  { img: 'blossom.png',   x: 73, y: 72, r: 10, w: 9,  alt: 'blossom' },
-  { img: 'headphone.png', x: 62, y: 63, r: 8,  w: 13, alt: 'headphones' },
-
-  { img: 'cigarette.png', x: 32, y: 12, r: 9,  w: 12, cat: 'smokes',  lbl: 'smokes' },
-  { img: 'clapper.png',   x: 41, y: 17, r: -6, w: 15, cat: 'movies',  lbl: 'movies' },
-  { img: 'bouquet.png',   x: 57, y: 3,  r: 4,  w: 14, cat: 'flowers', lbl: 'flowers' },
-  { img: 'tumbler.png',   x: 84, y: 40, r: 0,  w: 11, cat: 'drinks',  lbl: 'drinks' },
-  { img: 'cassette.png',  x: 2,  y: 60, r: 6,  w: 16, cat: 'music',   lbl: 'on repeat' },
-  { img: 'books.png',     x: 20, y: 64, r: -3, w: 15, cat: 'books',   lbl: 'books' },
-];
-
 const jsonld = [{
   '@context': 'https://schema.org', '@type': 'AboutPage',
   name: `About ${about.nick}`, url: abs(Astro, '/about'),
@@ -69,51 +50,112 @@ const jsonld = [{
 ---
 <Base
   title={`About — ${site.brand.name} ${site.brand.mark}`}
-  description="Shreya (Silky) — writer, reader, overthinker-in-chief. Poke around her desk."
+  description="Shreya (Silky) — writer, reader, overthinker-in-chief. The story behind the late-night scribbles."
   jsonld={jsonld}
 >
 <main id="about" class="wrap">
 
+  <!-- intro -->
   <header class="ab-hero">
     <span class="sticker">about</span>
+    <svg class="doodle ab-hide" style="top:6px;right:8px;width:64px;height:64px;transform:rotate(12deg)" viewBox="0 0 60 60" fill="var(--pink)"><path d="M30 2 L36 24 L58 30 L36 36 L30 58 L24 36 L2 30 L24 24 Z"/></svg>
     <h1 class="ab-name">Hi, I'm {about.nick}.</h1>
     <svg class="scribble" viewBox="0 0 340 16" preserveAspectRatio="none" style="max-width:300px"><path d="M4 11 q40 -9 80 -3 q50 7 96 -2 q56 -10 104 1 q30 6 52 -1"/></svg>
     <p class="ab-tag">{about.tag}</p>
-    <p class="ab-hint">this is my desk. everything on it is a little piece of me — <b>tap the things</b> to snoop. ✦</p>
   </header>
 
-  <!-- ── THE DESK ── -->
-  <section class="desk" aria-label="Silky's desk — tap an object">
-
-    <!-- polaroid (her photo) → about -->
-    <button class="item pola-item" data-cat="about" style="--x:2;--y:8;--r:-6;--w:17" aria-label="about Silky">
-      <span class="pola">
-        <span class="tape" style="top:-10px;left:50%;margin-left:-40px;transform:rotate(-4deg)"></span>
+  <!-- ── top: polaroid + diary ── -->
+  <section class="wall">
+    <div class="wall-left">
+      <figure class="polaroid rv">
+        <span class="tape" style="top:-13px;left:50%;margin-left:-46px;transform:rotate(-4deg)"></span>
         <img src="/silky.jpg" alt="Silky" width="680" height="850" />
-        <span class="pola-cap">that's me ✎</span>
-      </span>
-    </button>
+        <figcaption>me, mid-overthink</figcaption>
+      </figure>
 
-    {objects.map((o) => (
-      o.cat ? (
-        <button class="item obj-btn" data-cat={o.cat} style={`--x:${o.x};--y:${o.y};--r:${o.r};--w:${o.w}`} aria-label={`Silky's ${o.lbl}`}>
-          <img src={`/desk/${o.img}`} alt="" />
-          <figcaption class="lbl">{o.lbl}</figcaption>
-        </button>
-      ) : (
-        <figure class="item deco-obj" style={`--x:${o.x};--y:${o.y};--r:${o.r};--w:${o.w}`}>
-          <img src={`/desk/${o.img}`} alt="" />
-        </figure>
-      )
-    ))}
+      <aside class="sticky rv">
+        <h3>currently</h3>
+        <ul>
+          {now.map((n) => <li><span class="k">{n.k}</span><span class="v">{n.v}</span></li>)}
+        </ul>
+      </aside>
+    </div>
 
+    <article class="diary rv">
+      <span class="tape" style="top:-13px;right:44px;transform:rotate(6deg)"></span>
+      <h2>the long version</h2>
+      {diary.map((p) => <p>{p}</p>)}
+      <span class="sign">— {about.nick} ✷</span>
+    </article>
+  </section>
+
+  <!-- ── favourites board (tap to reveal) ── -->
+  <section class="favs">
+    <div class="sec-head">
+      <h2>a few of my favourite things</h2>
+      <span class="line"></span>
+    </div>
+    <p class="favs-hint">tap any of them ↓</p>
+
+    <div class="favs-grid">
+      <button class="fav obj-btn" data-cat="smokes" aria-label="Silky's cigarettes">
+        <svg class="fd" viewBox="0 0 100 100">
+          <path class="s" d="M22 46 q8 -12 -2 -22 q-8 -8 2 -16" fill="none" stroke="var(--ink-soft)" stroke-width="2.6" stroke-linecap="round"/>
+          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="52" width="58" height="15" rx="6"/><line x1="60" y1="52" x2="60" y2="67"/></g>
+          <circle cx="20" cy="59.5" r="5.5" fill="var(--pink)"/>
+        </svg>
+        <span class="lbl">smokes</span>
+      </button>
+
+      <button class="fav obj-btn" data-cat="drinks" aria-label="Silky's drinks">
+        <svg class="fd" viewBox="0 0 100 100">
+          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 34 H72 L65 82 Q65 87 60 87 H40 Q35 87 35 82 Z"/><path d="M33 56 q9 6 17 0 q8 -6 17 0"/></g>
+          <path d="M50 34 V16" stroke="var(--pink)" stroke-width="3.2" stroke-linecap="round"/><circle cx="50" cy="14" r="5" fill="var(--pink)"/>
+        </svg>
+        <span class="lbl">drinks</span>
+      </button>
+
+      <button class="fav obj-btn" data-cat="books" aria-label="Silky's books">
+        <svg class="fd" viewBox="0 0 100 100">
+          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linejoin="round"><rect x="22" y="60" width="60" height="15" rx="2"/><rect x="27" y="45" width="55" height="15" rx="2"/><rect x="17" y="30" width="58" height="15" rx="2"/></g>
+          <g stroke="var(--pink)" stroke-width="3" stroke-linecap="round"><line x1="30" y1="66" x2="30" y2="69"/><line x1="35" y1="51" x2="35" y2="54"/><line x1="25" y1="36" x2="25" y2="39"/></g>
+        </svg>
+        <span class="lbl">books</span>
+      </button>
+
+      <button class="fav obj-btn" data-cat="music" aria-label="Silky's music">
+        <svg class="fd" viewBox="0 0 100 100">
+          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linejoin="round"><rect x="14" y="32" width="72" height="44" rx="8"/><line x1="26" y1="42" x2="74" y2="42"/></g>
+          <circle cx="38" cy="58" r="8.5" fill="none" stroke="var(--pink)" stroke-width="3.4"/><circle cx="62" cy="58" r="8.5" fill="none" stroke="var(--pink)" stroke-width="3.4"/>
+          <circle cx="38" cy="58" r="2.5" fill="var(--blue)"/><circle cx="62" cy="58" r="2.5" fill="var(--blue)"/>
+        </svg>
+        <span class="lbl">on repeat</span>
+      </button>
+
+      <button class="fav obj-btn" data-cat="movies" aria-label="Silky's movies">
+        <svg class="fd" viewBox="0 0 100 100">
+          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linejoin="round"><rect x="20" y="44" width="60" height="36" rx="3"/><path d="M20 44 L26 30 L42 34 L36 48"/><path d="M42 34 L58 38 L52 52"/><path d="M58 38 L74 42 L68 56"/></g>
+          <path d="M45 54 v16 l14 -8 z" fill="var(--pink)"/>
+        </svg>
+        <span class="lbl">movies</span>
+      </button>
+
+      <button class="fav obj-btn" data-cat="flowers" aria-label="Silky's flowers">
+        <svg class="fd" viewBox="0 0 100 100">
+          <g fill="none" stroke="var(--blue)" stroke-width="3.4" stroke-linecap="round"><path d="M50 58 V86"/><path d="M50 74 q-14 -2 -20 -14"/><path d="M50 66 q14 -2 20 -14"/></g>
+          <g fill="var(--pink)"><ellipse cx="50" cy="30" rx="8" ry="12"/><ellipse cx="34" cy="42" rx="12" ry="8"/><ellipse cx="66" cy="42" rx="12" ry="8"/><ellipse cx="40" cy="24" rx="10" ry="9" transform="rotate(-35 40 24)"/><ellipse cx="60" cy="24" rx="10" ry="9" transform="rotate(35 60 24)"/></g>
+          <circle cx="50" cy="38" r="7" fill="var(--pink-deep)"/>
+        </svg>
+        <span class="lbl">flowers</span>
+      </button>
+    </div>
   </section>
 
   <div class="ab-cta">
     <a class="read-cta" href="/#wall" style="display:inline-block;text-decoration:none">now read the diary →</a>
   </div>
 
-  <!-- favourites data (hidden; cloned into the note on click) -->
+  <!-- favourites data (hidden; cloned on tap) -->
   <div id="deskData" hidden>
     {Object.entries(favs).map(([cat, d]) => (
       <div class="dset" data-cat={cat}>
@@ -124,7 +166,7 @@ const jsonld = [{
     ))}
   </div>
 
-  <!-- the note card that flips up -->
+  <!-- the note that flips up -->
   <div id="deskCard" class="desk-card" aria-hidden="true">
     <div class="dc-inner" role="dialog" aria-modal="true">
       <span class="tape" style="top:-12px;left:40px;transform:rotate(-5deg)"></span>
@@ -146,8 +188,7 @@ const jsonld = [{
     let lastFocus = null;
     function open(cat, trigger) {
       if (!data[cat]) return;
-      lastFocus = trigger || null;
-      body.innerHTML = data[cat];
+      lastFocus = trigger || null; body.innerHTML = data[cat];
       card.classList.add('open'); card.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden'; card.querySelector('.dc-close').focus();
     }
@@ -155,10 +196,7 @@ const jsonld = [{
       card.classList.remove('open'); card.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = ''; if (lastFocus) lastFocus.focus();
     }
-    document.querySelectorAll('[data-cat]').forEach((b) => {
-      if (b.classList.contains('dset')) return;
-      b.addEventListener('click', () => open(b.dataset.cat, b));
-    });
+    document.querySelectorAll('.obj-btn').forEach((b) => b.addEventListener('click', () => open(b.dataset.cat, b)));
     card.addEventListener('click', (e) => { if (e.target === card || e.target.closest('.dc-close')) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && card.classList.contains('open')) close(); });
   })();
@@ -167,58 +205,58 @@ const jsonld = [{
 <style>
   #about { padding-bottom: 40px; }
 
-  .ab-hero { padding: 44px 0 6px; }
+  .ab-hero { padding: 44px 0 26px; position: relative; }
   .ab-hero .sticker { font-size: 1rem; margin-bottom: 18px; }
   .ab-name { font-family: var(--marker); font-weight: 700; color: var(--pink);
     font-size: clamp(2.8rem, 8vw, 5.2rem); line-height: .9; margin: 12px 0 0; text-shadow: 2px 2px 0 var(--blue); }
   .ab-tag { font-family: var(--hand); font-size: clamp(1rem, 2.4vw, 1.3rem); color: var(--blue); margin-top: 12px; transform: rotate(-.8deg); }
-  .ab-hint { font-family: var(--type); font-size: .92rem; color: var(--ink-soft); margin-top: 16px; }
-  .ab-hint b { color: var(--pink); }
 
-  /* ── wooden desk surface ── */
-  .desk { position: relative; container-type: inline-size;
-    width: 100%; max-width: 1120px; margin: 22px auto 10px; aspect-ratio: 1120 / 680;
-    border-radius: 14px; overflow: hidden;
-    background-color: #6f4626;
-    background-image:
-      radial-gradient(130% 100% at 80% 0%, rgba(255,214,150,.32), transparent 55%),
-      linear-gradient(0deg, rgba(0,0,0,.30), transparent 34%),
-      repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 3px, rgba(0,0,0,.035) 3px 6px),
-      repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, rgba(255,255,255,.02) 2px 4px, transparent 4px 168px),
-      linear-gradient(100deg, #7c5233, #6b4425);
-    box-shadow: inset 0 0 120px rgba(0,0,0,.3), 0 22px 55px rgba(0,0,0,.28);
-    border: 1px solid rgba(0,0,0,.2); }
-  [data-theme="night"] .desk {
-    background-color: #38271b;
-    background-image:
-      radial-gradient(130% 100% at 80% 0%, rgba(150,160,230,.16), transparent 52%),
-      linear-gradient(0deg, rgba(0,0,0,.42), transparent 34%),
-      repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 3px, rgba(0,0,0,.05) 3px 6px),
-      repeating-linear-gradient(90deg, rgba(0,0,0,.24) 0 2px, rgba(255,255,255,.015) 2px 4px, transparent 4px 168px),
-      linear-gradient(100deg, #43301f, #34241792); }
+  /* ── wall: polaroid + diary ── */
+  .wall { display: grid; grid-template-columns: 300px 1fr; gap: 46px; align-items: start; margin: 8px 0 74px; }
+  .wall-left { display: flex; flex-direction: column; gap: 30px; }
 
-  .item { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%);
-    width: calc(var(--w) * 1cqw); transform: rotate(calc(var(--r) * 1deg));
-    display: flex; flex-direction: column; align-items: center; gap: .5cqw; margin: 0; padding: 0; }
-  .item img { width: 100%; height: auto; display: block;
-    filter: drop-shadow(3px 7px 7px rgba(0,0,0,.5)); }
-  .lbl { font-family: var(--hand); font-size: 1.5cqw; color: #fff5e6; text-align: center; line-height: 1;
-    background: rgba(30,18,10,.55); padding: .3cqw .7cqw; border-radius: 3px; }
+  .polaroid { background: var(--card); padding: 15px 15px 18px; position: relative;
+    box-shadow: 4px 12px 30px rgba(0,0,0,.2); transform: rotate(-2.6deg); }
+  .polaroid img { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; object-position: 34% 24%; }
+  .polaroid figcaption { font-family: var(--marker); font-weight: 700; font-size: 1.6rem; color: var(--ink); text-align: center; margin-top: 10px; }
 
-  button.obj-btn { background: none; border: 0; cursor: pointer; transition: transform .18s var(--ease); z-index: 2; }
-  button.obj-btn:hover, button.obj-btn:focus-visible { transform: rotate(calc(var(--r) * 1deg)) translateY(-7px) scale(1.08); outline: none; z-index: 9; }
-  button.obj-btn:hover .lbl, button.obj-btn:focus-visible .lbl { background: var(--pink); }
-  button.obj-btn::after { content: ""; position: absolute; inset: -10% -12% 4%; border-radius: 14px;
-    background: radial-gradient(circle, rgba(255,220,150,.5), transparent 68%); opacity: 0; transition: opacity .2s; z-index: -1; }
-  button.obj-btn:hover::after, button.obj-btn:focus-visible::after { opacity: 1; }
+  .sticky { background: #f7e58a; padding: 22px 24px; box-shadow: 3px 8px 20px rgba(0,0,0,.16); transform: rotate(1.4deg); }
+  [data-theme="night"] .sticky { background: #d8c76a; }
+  .sticky h3 { font-family: var(--sticker); text-transform: uppercase; font-size: 1.1rem; color: #3a2f10; letter-spacing: .04em; margin-bottom: 12px; transform: rotate(-1.5deg); }
+  .sticky ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .sticky li { display: flex; flex-direction: column; }
+  .sticky .k { font-family: var(--grotesk); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a1a; }
+  .sticky .v { font-family: var(--type); font-size: .92rem; color: #2a2410; line-height: 1.35; }
 
-  /* polaroid */
-  .pola-item { z-index: 3; cursor: pointer; background: none; border: 0; transition: transform .18s var(--ease); }
-  .pola-item:hover, .pola-item:focus-visible { transform: rotate(calc(var(--r) * 1deg)) translateY(-7px) scale(1.05); outline: none; z-index: 9; }
-  .pola { display: block; background: #fbf8ee; padding: 6% 6% 12%; position: relative;
-    box-shadow: 5px 12px 26px rgba(0,0,0,.5); width: 100%; }
-  .pola img { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; object-position: 34% 24%; filter: none; }
-  .pola-cap { display: block; font-family: var(--marker); font-weight: 700; font-size: 2.3cqw; color: #181622; text-align: center; margin-top: 4%; }
+  .diary { position: relative; background: var(--card); padding: 40px 42px 34px;
+    box-shadow: 0 14px 44px rgba(0,0,0,.16); transform: rotate(.4deg);
+    background-image: repeating-linear-gradient(var(--card) 0 33px, color-mix(in srgb, var(--blue) 20%, transparent) 33px 34px);
+    border-left: 3px solid color-mix(in srgb, var(--pink) 60%, transparent); }
+  .diary h2 { font-family: var(--marker); font-weight: 700; font-size: clamp(1.9rem, 4vw, 2.7rem); color: var(--pink);
+    text-shadow: 1.5px 1.5px 0 var(--blue); line-height: 1; margin-bottom: 20px; }
+  .diary p { font-family: var(--type); font-size: 1rem; line-height: 34px; color: var(--ink); max-width: 62ch; }
+  .diary .sign { display: block; font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--blue); margin-top: 20px; transform: rotate(-2deg); }
+
+  /* ── favourites board ── */
+  .favs { margin: 0 0 30px; }
+  .favs-hint { font-family: var(--hand); font-size: 1.05rem; color: var(--blue); margin: -22px 0 26px; transform: rotate(-.8deg); }
+  .favs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+
+  .fav { position: relative; background: var(--card); border: 1px solid rgba(0,0,0,.06); cursor: pointer;
+    padding: 26px 18px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    box-shadow: 3px 8px 22px rgba(0,0,0,.14); transition: transform .22s var(--ease), box-shadow .22s var(--ease); }
+  .fav::before { content: ""; position: absolute; top: -11px; left: 50%; margin-left: -42px; width: 84px; height: 22px;
+    background: var(--tape); transform: rotate(-3deg); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .fav:nth-child(3n+1) { transform: rotate(-1.8deg); }
+  .fav:nth-child(3n+2) { transform: rotate(1.2deg); }
+  .fav:nth-child(3n)   { transform: rotate(-.6deg); }
+  .fav:hover, .fav:focus-visible { transform: rotate(0) translateY(-7px) scale(1.03); box-shadow: 6px 16px 34px rgba(0,0,0,.22); outline: none; z-index: 4; }
+  .fd { width: 74px; height: 74px; filter: url(#rough); }
+  .fav .s { animation: puff 4.5s ease-in-out infinite; }
+  @keyframes puff { 0%,100% { opacity: .4; } 50% { opacity: .75; } }
+  @media (prefers-reduced-motion: reduce) { .fav .s { animation: none; } }
+  .lbl { font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--ink); line-height: 1; transition: color .2s; }
+  .fav:hover .lbl, .fav:focus-visible .lbl { color: var(--pink); }
 
   /* ── note card ── */
   .desk-card { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
@@ -239,19 +277,21 @@ const jsonld = [{
   .dc-body :global(li) { font-family: var(--type); font-size: 1rem; color: var(--ink); line-height: 1.4; padding-left: 26px; position: relative; }
   .dc-body :global(li)::before { content: "✦"; position: absolute; left: 0; top: 1px; color: var(--pink); }
 
-  .ab-cta { text-align: center; padding: 26px 0 20px; }
+  .ab-cta { text-align: center; padding: 20px 0; }
 
-  /* ── mobile: desk reflows into a tidy stack ── */
-  @media (max-width: 760px) {
-    .desk { position: static; aspect-ratio: auto; container-type: normal; border-radius: 14px;
-      display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
-      gap: 26px 20px; padding: 32px 18px; }
-    .item { position: static; width: auto; }
-    .item img { width: 88px; }
-    .pola-item .pola { width: 200px; }
-    .pola-item .pola img { width: 100%; }
-    .lbl { font-size: .85rem; padding: 2px 7px; }
-    .pola-cap { font-size: 1.4rem; }
+  /* ── responsive ── */
+  @media (max-width: 820px) {
+    .wall { grid-template-columns: 1fr; gap: 34px; }
+    .wall-left { flex-direction: row; flex-wrap: wrap; gap: 22px; }
+    .polaroid { max-width: 280px; }
+    .sticky { flex: 1; min-width: 200px; }
+    .diary { padding: 30px 26px; }
   }
+  @media (max-width: 560px) {
+    .favs-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .wall-left { flex-direction: column; }
+    .polaroid { margin: 0 auto; }
+  }
+  @media (max-width: 680px) { .ab-hide { display: none; } }
 </style>
 </Base>
