@@ -67,7 +67,7 @@ const jsonld = [{
 >
 <main id="about">
 
-  <section class="desk" aria-label="Silky's desk — tap the things on it">
+  <section class="desk" aria-label="Silky's garden — tap the things in it">
     <div class="desk-top" id="deskTop">
 
       <!-- intro scrap -->
@@ -76,7 +76,7 @@ const jsonld = [{
         <span class="sticker">about</span>
         <h1 class="d-name">Hi, I'm {about.nick}.</h1>
         <p class="d-tag">{about.tag}</p>
-        <p class="d-hint">this is my desk. tap my things ↓</p>
+        <p class="d-hint">this is my little garden. tap my things ↓</p>
       </header>
 
       <!-- her real photo -->
@@ -197,29 +197,17 @@ const jsonld = [{
 <style>
   #about { padding-bottom: 40px; }
 
-  /* ── the desk: full-bleed painted wood ── */
+  /* ── the scene: her painted garden, top-down ── */
   .desk {
     position: relative; overflow: hidden;
     height: max(86vh, 760px);
-    background:
-      radial-gradient(120% 80% at 50% 0%, rgba(255,236,210,.14), transparent 55%),
-      radial-gradient(140% 90% at 50% 108%, rgba(30,14,6,.30), transparent 60%),
-      repeating-linear-gradient(92deg, rgba(46,24,10,.13) 0 2px, transparent 2px 218px),
-      repeating-linear-gradient(1.5deg, rgba(255,255,255,.028) 0 2px, transparent 2px 7px),
-      repeating-linear-gradient(-.8deg, rgba(40,20,8,.05) 0 1px, transparent 1px 14px),
-      linear-gradient(108deg, #96714e, #85603f 46%, #745233);
+    background: #a9805c url('/desk/garden.webp') center / cover no-repeat;
   }
-  .desk::after { /* paper-grain noise so the wood feels painted, not vector */
-    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .33 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  [data-theme="night"] .desk {
-    background:
-      radial-gradient(120% 80% at 50% 0%, rgba(148,132,190,.10), transparent 55%),
-      radial-gradient(140% 90% at 50% 108%, rgba(0,0,0,.45), transparent 60%),
-      repeating-linear-gradient(92deg, rgba(0,0,0,.22) 0 2px, transparent 2px 218px),
-      repeating-linear-gradient(1.5deg, rgba(255,255,255,.02) 0 2px, transparent 2px 7px),
-      linear-gradient(108deg, #4c3a29, #41301f 46%, #372817);
+  [data-theme="night"] .desk { /* moonlit tint over the same painting */
+    background-image:
+      linear-gradient(rgba(24, 18, 48, .58), rgba(24, 18, 48, .58)),
+      url('/desk/garden.webp');
+    background-color: #241c38;
   }
   .desk-top { position: absolute; inset: 0; }
 
@@ -238,7 +226,8 @@ const jsonld = [{
   @keyframes settle { from { opacity: 0; transform: translate(0, -14px) rotate(var(--r, 0deg)) scale(1.04); } }
   @media (prefers-reduced-motion: reduce) { .dobj { animation: none; } }
 
-  button.dobj { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  button.dobj { border: 0; padding: 0; cursor: pointer; text-align: left; }
+  button.dart { background: none; }
   button.dobj:focus-visible { outline: 3px dashed var(--paper); outline-offset: 6px; }
 
   /* painted objects */
@@ -253,7 +242,7 @@ const jsonld = [{
   .dart:hover .d-lbl, .dart:focus-visible .d-lbl { opacity: 1; transform: translateX(-50%) rotate(-1deg) translateY(4px); }
 
   /* ── paper things (code-drawn, same collage language) ── */
-  .paper { background: var(--card); box-shadow: 4px 10px 24px rgba(25,10,2,.35); }
+  .dobj.paper { background: var(--card); box-shadow: 4px 10px 24px rgba(25,10,2,.35); }
 
   .d-intro { left: 3.5%; top: 6%; width: min(330px, 42vw); padding: 26px 26px 22px; }
   .d-intro .sticker { font-size: .85rem; }
