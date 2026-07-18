@@ -79,6 +79,19 @@ const jsonld = [{
           {now.map((n) => <li><span class="k">{n.k}</span><span class="v">{n.v}</span></li>)}
         </ul>
       </aside>
+
+      <div class="prints rv">
+        <figure class="print" style="transform:rotate(-2.2deg)">
+          <span class="tape" style="top:-11px;left:50%;margin-left:-34px;transform:rotate(-5deg)"></span>
+          <img src="/about/camera.webp" alt="a painted film camera" width="640" height="640" loading="lazy" decoding="async" />
+          <figcaption>the enabler</figcaption>
+        </figure>
+        <figure class="print" style="transform:rotate(1.8deg)">
+          <span class="tape" style="top:-11px;left:50%;margin-left:-34px;transform:rotate(4deg)"></span>
+          <img src="/about/coffee.webp" alt="a painted cup of coffee, seen from above" width="640" height="640" loading="lazy" decoding="async" />
+          <figcaption>cold. again.</figcaption>
+        </figure>
+      </div>
     </div>
 
     <article class="diary rv">
@@ -99,19 +112,12 @@ const jsonld = [{
 
     <div class="favs-grid">
       <button class="fav obj-btn" data-cat="smokes" aria-label="Silky's cigarettes">
-        <svg class="fd" viewBox="0 0 100 100">
-          <path class="s" d="M22 46 q8 -12 -2 -22 q-8 -8 2 -16" fill="none" stroke="var(--ink-soft)" stroke-width="2.6" stroke-linecap="round"/>
-          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="52" width="58" height="15" rx="6"/><line x1="60" y1="52" x2="60" y2="67"/></g>
-          <circle cx="20" cy="59.5" r="5.5" fill="var(--pink)"/>
-        </svg>
+        <img class="fp" src="/about/smokes.webp" alt="" width="640" height="640" loading="lazy" decoding="async" />
         <span class="lbl">smokes</span>
       </button>
 
       <button class="fav obj-btn" data-cat="drinks" aria-label="Silky's drinks">
-        <svg class="fd" viewBox="0 0 100 100">
-          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 34 H72 L65 82 Q65 87 60 87 H40 Q35 87 35 82 Z"/><path d="M33 56 q9 6 17 0 q8 -6 17 0"/></g>
-          <path d="M50 34 V16" stroke="var(--pink)" stroke-width="3.2" stroke-linecap="round"/><circle cx="50" cy="14" r="5" fill="var(--pink)"/>
-        </svg>
+        <img class="fp" src="/about/drinks.webp" alt="" width="640" height="640" loading="lazy" decoding="async" />
         <span class="lbl">drinks</span>
       </button>
 
@@ -228,6 +234,12 @@ const jsonld = [{
   .sticky .k { font-family: var(--grotesk); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a1a; }
   .sticky .v { font-family: var(--type); font-size: .92rem; color: #2a2410; line-height: 1.35; }
 
+  .prints { display: flex; gap: 18px; }
+  .print { position: relative; flex: 1; background: var(--card); padding: 9px 9px 6px;
+    box-shadow: 3px 8px 20px rgba(0,0,0,.16); }
+  .print img { display: block; width: 100%; height: auto; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .print figcaption { font-family: var(--hand); font-size: .88rem; color: var(--ink-soft); text-align: center; padding: 5px 0 3px; }
+
   .diary { position: relative; background: var(--card); padding: 40px 42px 34px;
     box-shadow: 0 14px 44px rgba(0,0,0,.16); transform: rotate(.4deg);
     background-image: repeating-linear-gradient(var(--card) 0 33px, color-mix(in srgb, var(--blue) 20%, transparent) 33px 34px);
@@ -252,9 +264,7 @@ const jsonld = [{
   .fav:nth-child(3n)   { transform: rotate(-.6deg); }
   .fav:hover, .fav:focus-visible { transform: rotate(0) translateY(-7px) scale(1.03); box-shadow: 6px 16px 34px rgba(0,0,0,.22); outline: none; z-index: 4; }
   .fd { width: 74px; height: 74px; filter: url(#rough); }
-  .fav .s { animation: puff 4.5s ease-in-out infinite; }
-  @keyframes puff { 0%,100% { opacity: .4; } 50% { opacity: .75; } }
-  @media (prefers-reduced-motion: reduce) { .fav .s { animation: none; } }
+  .fp { width: 108px; height: 108px; object-fit: cover; box-shadow: 0 1px 5px rgba(0,0,0,.15); }
   .lbl { font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--ink); line-height: 1; transition: color .2s; }
   .fav:hover .lbl, .fav:focus-visible .lbl { color: var(--pink); }
 
@@ -285,12 +295,14 @@ const jsonld = [{
     .wall-left { flex-direction: row; flex-wrap: wrap; gap: 22px; }
     .polaroid { max-width: 280px; }
     .sticky { flex: 1; min-width: 200px; }
+    .prints { flex: 1 1 100%; max-width: 380px; }
     .diary { padding: 30px 26px; }
   }
   @media (max-width: 560px) {
     .favs-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     .wall-left { flex-direction: column; }
     .polaroid { margin: 0 auto; }
+    .prints { margin: 0 auto; width: 100%; }
   }
   @media (max-width: 680px) { .ab-hide { display: none; } }
 </style>
