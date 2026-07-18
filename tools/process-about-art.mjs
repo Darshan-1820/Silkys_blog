@@ -8,10 +8,9 @@ const DL = 'C:/Users/addar/Downloads';
 const OUT = fileURLToPath(new URL('../public/about/', import.meta.url));
 
 const art = [
-  { file: 'Gemini_Generated_Image_q283xlq283xlq283.png', name: 'drinks' },
-  { file: 'Gemini_Generated_Image_s6phf2s6phf2s6ph.png', name: 'camera' },
-  { file: 'Gemini_Generated_Image_9plq9p9plq9p9plq.png', name: 'smokes' },
-  { file: 'Gemini_Generated_Image_d4l1vbd4l1vbd4l1.png', name: 'coffee' },
+  { file: 'Gemini_Generated_Image_tjt250tjt250tjt2.png', name: 'music' },
+  { file: 'Gemini_Generated_Image_pkubcepkubcepkub.png', name: 'movies' },
+  { file: 'Gemini_Generated_Image_kx0ko8kx0ko8kx0k.png', name: 'flowers' },
 ];
 
 await mkdir(OUT, { recursive: true });

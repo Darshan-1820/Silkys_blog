@@ -15,6 +15,15 @@ def reveal(pg):
 
 with sync_playwright() as p:
     b = p.chromium.launch()
+    pg = b.new_page(viewport={"width": 1440, "height": 900})
+    pg.goto(URL, wait_until="networkidle")
+    reveal(pg)
+    pg.screenshot(path=f"{OUT}/about-day.png", full_page=True)
+    pg.evaluate("localStorage.setItem('theme','night')")
+    pg.reload(wait_until="networkidle")
+    reveal(pg)
+    pg.screenshot(path=f"{OUT}/about-night.png", full_page=True)
+    pg.close()
     m = b.new_page(viewport={"width": 390, "height": 844})
     m.goto(URL, wait_until="networkidle")
     reveal(m)
