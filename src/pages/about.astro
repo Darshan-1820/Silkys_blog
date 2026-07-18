@@ -122,10 +122,7 @@ const jsonld = [{
       </button>
 
       <button class="fav obj-btn" data-cat="books" aria-label="Silky's books">
-        <svg class="fd" viewBox="0 0 100 100">
-          <g fill="none" stroke="var(--blue)" stroke-width="3.6" stroke-linejoin="round"><rect x="22" y="60" width="60" height="15" rx="2"/><rect x="27" y="45" width="55" height="15" rx="2"/><rect x="17" y="30" width="58" height="15" rx="2"/></g>
-          <g stroke="var(--pink)" stroke-width="3" stroke-linecap="round"><line x1="30" y1="66" x2="30" y2="69"/><line x1="35" y1="51" x2="35" y2="54"/><line x1="25" y1="36" x2="25" y2="39"/></g>
-        </svg>
+        <img class="fp" src="/about/books.webp" alt="" width="640" height="640" loading="lazy" decoding="async" />
         <span class="lbl">books</span>
       </button>
 
@@ -252,7 +249,6 @@ const jsonld = [{
   .fav:nth-child(3n+2) { transform: rotate(1.2deg); }
   .fav:nth-child(3n)   { transform: rotate(-.6deg); }
   .fav:hover, .fav:focus-visible { transform: rotate(0) translateY(-7px) scale(1.03); box-shadow: 6px 16px 34px rgba(0,0,0,.22); outline: none; z-index: 4; }
-  .fd { width: 74px; height: 74px; filter: url(#rough); }
   .fp { width: 108px; height: 108px; object-fit: cover; box-shadow: 0 1px 5px rgba(0,0,0,.15); }
   .lbl { font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--ink); line-height: 1; transition: color .2s; }
   .fav:hover .lbl, .fav:focus-visible .lbl { color: var(--pink); }
