@@ -79,18 +79,10 @@ const jsonld = [{
         <p class="d-hint">this is my little garden. tap my things ↓</p>
       </header>
 
-      <!-- her real photo -->
-      <figure class="dobj d-polaroid" data-depth="1.15" style="--r:5deg">
-        <img src="/silky.jpg" alt="Silky" width="680" height="850" />
-        <figcaption>me, mid-overthink</figcaption>
-      </figure>
-
-      <!-- the diary sheet → the long version -->
-      <button class="dobj paper d-diary obj-btn" data-cat="diary" data-depth="1" style="--r:-2.4deg" aria-label="Read the long version of Silky's story">
-        <span class="tape" style="top:-12px;right:30px;transform:rotate(5deg)"></span>
-        <h2>the long version</h2>
-        <p class="d-lines">{diary[0]}</p>
-        <span class="d-more">keep reading →</span>
+      <!-- her photo, cut out as a sticker — tap → the long version -->
+      <button class="dobj dart obj-btn o-me" data-cat="diary" data-depth="1.15" style="--r:-4deg" aria-label="Read Silky's story — the long version">
+        <img src="/desk/silky.webp" alt="Silky" loading="eager" decoding="async" />
+        <span class="d-lbl">read my story →</span>
       </button>
 
       <!-- currently sticky -->
@@ -126,6 +118,7 @@ const jsonld = [{
       </div>
     ))}
     <div class="dset" data-cat="diary">
+      <figure class="dc-photo"><img src="/silky.jpg" alt="Silky" width="680" height="850" /><figcaption>me, mid-overthink</figcaption></figure>
       <h3>the long version</h3>
       {diary.map((p) => <p class="dc-p">{p}</p>)}
       <p class="dc-sign">— {about.nick} ✷</p>
@@ -197,19 +190,34 @@ const jsonld = [{
 <style>
   #about { padding-bottom: 40px; }
 
-  /* ── the scene: her painted garden, top-down ── */
+  /* ── the scene: her painted garden, top-down — graded + spotlit ── */
   .desk {
     position: relative; overflow: hidden;
     height: max(86vh, 760px);
-    background: #a9805c url('/desk/garden.webp') center / cover no-repeat;
+    background: #8a6a48;
   }
-  [data-theme="night"] .desk { /* moonlit tint over the same painting */
-    background-image:
-      linear-gradient(rgba(24, 18, 48, .58), rgba(24, 18, 48, .58)),
-      url('/desk/garden.webp');
-    background-color: #241c38;
+  /* the painting, pushed BACK — muted so it reads as a backdrop, not the star */
+  .desk::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background: url('/desk/garden.webp') center / cover no-repeat;
+    filter: saturate(.82) brightness(.86) contrast(1.02);
   }
-  .desk-top { position: absolute; inset: 0; }
+  /* soft centre light + strong vignette so objects sit in a pool of light */
+  .desk::after {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(75% 60% at 50% 42%, rgba(255,240,205,.14), rgba(255,240,205,0) 60%),
+      radial-gradient(125% 105% at 50% 44%, transparent 34%, rgba(20,9,2,.62) 100%);
+  }
+  [data-theme="night"] .desk { background: #1a1530; }
+  [data-theme="night"] .desk::before { filter: saturate(.8) brightness(.5) contrast(1.06); }
+  [data-theme="night"] .desk::after {
+    background:
+      radial-gradient(70% 55% at 50% 38%, rgba(150,160,255,.20), transparent 60%),
+      linear-gradient(rgba(20,14,44,.5), rgba(20,14,44,.5)),
+      radial-gradient(130% 105% at 50% 44%, transparent 38%, rgba(8,4,26,.72) 100%);
+  }
+  .desk-top { position: absolute; inset: 0; z-index: 2; }
 
   /* ── shared object behaviour ── */
   .dobj {
@@ -230,19 +238,37 @@ const jsonld = [{
   button.dart { background: none; }
   button.dobj:focus-visible { outline: 3px dashed var(--paper); outline-offset: 6px; }
 
-  /* painted objects */
-  .dart img { display: block; width: 100%; height: auto;
-    filter: drop-shadow(5px 12px 14px rgba(30,14,4,.38));
-    transition: transform .22s var(--ease), filter .22s var(--ease); }
-  .dart:hover img, .dart:focus-visible img { transform: translateY(-7px) scale(1.045);
-    filter: drop-shadow(9px 22px 26px rgba(30,14,4,.46)); }
-  .d-lbl { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%) rotate(-1deg);
-    font-family: var(--hand); font-size: .95rem; white-space: nowrap; color: #f7ecdc;
-    text-shadow: 0 1px 3px rgba(30,14,4,.5); opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
-  .dart:hover .d-lbl, .dart:focus-visible .d-lbl { opacity: 1; transform: translateX(-50%) rotate(-1deg) translateY(4px); }
+  /* painted objects = die-cut STICKERS — a crisp white edge peels them off the
+     garden, then a deep contact shadow floats them. This is what makes them pop. */
+  .dart img { position: relative; z-index: 1; display: block; width: 100%; height: auto;
+    --stk: #fbf7ec;
+    filter:
+      drop-shadow(2.5px 0 0 var(--stk)) drop-shadow(-2.5px 0 0 var(--stk))
+      drop-shadow(0 2.5px 0 var(--stk)) drop-shadow(0 -2.5px 0 var(--stk))
+      drop-shadow(1.8px 1.8px 0 var(--stk)) drop-shadow(-1.8px 1.8px 0 var(--stk))
+      drop-shadow(1.8px -1.8px 0 var(--stk)) drop-shadow(-1.8px -1.8px 0 var(--stk))
+      drop-shadow(7px 15px 15px rgba(20,9,2,.6));
+    transition: transform .24s var(--ease), filter .24s var(--ease); }
+  .dart:hover img, .dart:focus-visible img { transform: translateY(-8px) scale(1.06);
+    filter:
+      drop-shadow(2.5px 0 0 var(--stk)) drop-shadow(-2.5px 0 0 var(--stk))
+      drop-shadow(0 2.5px 0 var(--stk)) drop-shadow(0 -2.5px 0 var(--stk))
+      drop-shadow(1.8px 1.8px 0 var(--stk)) drop-shadow(-1.8px 1.8px 0 var(--stk))
+      drop-shadow(1.8px -1.8px 0 var(--stk)) drop-shadow(-1.8px -1.8px 0 var(--stk))
+      drop-shadow(11px 26px 28px rgba(20,9,2,.62)); }
+  [data-theme="night"] .dart img { --stk: #ece7f6; }
+  /* label = a little pink pill that pops on the busy garden */
+  .d-lbl { position: absolute; z-index: 2; left: 50%; bottom: -14px; transform: translateX(-50%) rotate(-1.5deg) scale(.9);
+    font-family: var(--hand); font-size: .82rem; white-space: nowrap; color: #fff;
+    background: var(--pink); padding: 3px 11px 4px; border-radius: 20px; line-height: 1;
+    box-shadow: 2px 3px 0 var(--blue), 0 6px 14px rgba(30,14,4,.35);
+    opacity: 0; transition: opacity .2s, transform .22s var(--ease); pointer-events: none; }
+  .dart:hover .d-lbl, .dart:focus-visible .d-lbl { opacity: 1; transform: translateX(-50%) rotate(-1.5deg) scale(1) translateY(6px); }
 
   /* ── paper things (code-drawn, same collage language) ── */
-  .dobj.paper { background: var(--card); box-shadow: 4px 10px 24px rgba(25,10,2,.35); }
+  .dobj.paper { background: var(--card);
+    box-shadow: 5px 14px 30px rgba(25,10,2,.48), 0 0 34px 6px rgba(255,239,206,.35); }
+  [data-theme="night"] .dobj.paper { box-shadow: 5px 14px 30px rgba(0,0,0,.55), 0 0 34px 6px rgba(190,200,255,.22); }
 
   .d-intro { left: 3.5%; top: 6%; width: min(330px, 42vw); padding: 26px 26px 22px; }
   .d-intro .sticker { font-size: .85rem; }
@@ -251,21 +277,10 @@ const jsonld = [{
   .d-tag { font-family: var(--hand); font-size: .98rem; color: var(--blue); }
   .d-hint { font-family: var(--hand); font-size: .9rem; color: var(--ink-soft); margin-top: 12px; transform: rotate(-1deg); }
 
-  .d-polaroid { right: 4%; top: 7%; width: clamp(150px, 14vw, 200px);
-    background: var(--card); padding: 10px 10px 12px; box-shadow: 4px 12px 26px rgba(25,10,2,.4); }
-  .d-polaroid img { display: block; width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; object-position: 34% 24%; }
-  .d-polaroid figcaption { font-family: var(--marker); font-weight: 700; font-size: 1.05rem; color: var(--ink); text-align: center; margin-top: 7px; }
+  /* her photo-sticker — under the intro, on the LEFT; tap → the long version */
+  .o-me { left: 5%; top: 33%; width: clamp(140px, 12.5vw, 182px); }
 
-  .d-diary { left: 33%; top: 36%; width: min(330px, 34vw); padding: 24px 26px 18px;
-    background-image: repeating-linear-gradient(var(--card) 0 26px, color-mix(in srgb, var(--blue) 20%, transparent) 26px 27px);
-    border-left: 3px solid color-mix(in srgb, var(--pink) 60%, transparent); }
-  .d-diary h2 { font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--pink);
-    text-shadow: 1px 1px 0 var(--blue); line-height: 1; margin-bottom: 10px; }
-  .d-diary .d-lines { font-family: var(--type); font-size: .88rem; line-height: 26px; color: var(--ink); }
-  .d-diary .d-more { display: inline-block; font-family: var(--hand); font-size: .95rem; color: var(--blue); margin-top: 8px; transform: rotate(-1deg); }
-  .d-diary:hover, .d-diary:focus-visible { box-shadow: 6px 16px 34px rgba(25,10,2,.45); }
-
-  .d-sticky { left: 4%; bottom: 9%; width: clamp(190px, 17vw, 230px); background: #f7e58a;
+  .d-sticky { left: 4%; bottom: 5%; width: clamp(180px, 16vw, 220px); background: #f7e58a;
     padding: 18px 20px; box-shadow: 3px 8px 20px rgba(25,10,2,.35); }
   [data-theme="night"] .d-sticky { background: #d8c76a; }
   .d-sticky h3 { font-family: var(--sticker); text-transform: uppercase; font-size: .95rem; color: #3a2f10; letter-spacing: .04em; margin-bottom: 9px; transform: rotate(-1.5deg); }
@@ -274,50 +289,76 @@ const jsonld = [{
   .d-sticky .k { font-family: var(--grotesk); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a1a; }
   .d-sticky .v { font-family: var(--type); font-size: .82rem; color: #2a2410; line-height: 1.3; }
 
-  /* ── painted-object positions (desktop) ── */
-  .o-flowers  { left: 42%; top: 3%;  width: clamp(120px, 11vw, 170px); --r: 6deg; }
-  .o-coffee   { left: 61%; top: 16%; width: clamp(120px, 11vw, 165px); --r: 0deg; }
-  .o-cassette { left: 9%;  top: 42%; width: clamp(150px, 14vw, 210px); --r: -7deg; }
-  .o-smokes   { left: 72%; top: 40%; width: clamp(120px, 11vw, 165px); --r: 9deg; }
-  .o-books    { left: 55%; top: 66%; width: clamp(170px, 16vw, 250px); --r: -3deg; }
-  .o-tickets  { left: 30%; top: 70%; width: clamp(150px, 14vw, 215px); --r: -8deg; }
+  /* ── painted-object positions (desktop) — spread evenly across the scene ── */
+  .o-flowers  { left: 39%; top: 5%;  width: clamp(120px, 11vw, 170px); --r: 6deg; }
+  .o-coffee   { left: 69%; top: 8%;  width: clamp(120px, 11vw, 165px); --r: 0deg; }
+  .o-cassette { left: 46%; top: 40%; width: clamp(140px, 13vw, 195px); --r: -7deg; }
+  .o-smokes   { left: 78%; top: 33%; width: clamp(120px, 11vw, 165px); --r: 9deg; }
+  .o-books    { left: 65%; top: 60%; width: clamp(165px, 15vw, 235px); --r: -3deg; }
+  .o-tickets  { left: 40%; top: 62%; width: clamp(150px, 14vw, 210px); --r: -8deg; }
 
   .ab-cta { text-align: center; padding: 34px 0 10px; }
 
-  /* ── note card ── */
-  .desk-card { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
-    background: rgba(18,16,26,.55); backdrop-filter: blur(3px); padding: 24px; }
-  .desk-card.open { display: flex; }
-  .dc-inner { position: relative; background: var(--card); width: min(440px, 92vw); max-height: 84vh; overflow: auto;
-    padding: 40px 34px 34px; box-shadow: 0 24px 70px rgba(0,0,0,.5); transform: rotate(-1.2deg);
-    background-image: repeating-linear-gradient(var(--card) 0 30px, color-mix(in srgb, var(--blue) 16%, transparent) 30px 31px);
-    animation: pop .28s var(--ease); }
-  @keyframes pop { from { transform: rotate(-1.2deg) scale(.85); opacity: 0; } to { transform: rotate(-1.2deg) scale(1); opacity: 1; } }
-  .dc-close { position: sticky; top: 0; float: right; background: var(--ink); color: var(--paper); border: 0;
-    width: 30px; height: 30px; cursor: pointer; font-size: .9rem; line-height: 1; box-shadow: 2px 2px 0 rgba(0,0,0,.25); }
-  .dc-close:hover { background: var(--pink); }
-  .dc-body :global(h3) { font-family: var(--marker); font-weight: 700; font-size: 2.4rem; color: var(--pink);
-    text-shadow: 1.5px 1.5px 0 var(--blue); line-height: .95; margin-bottom: 4px; }
-  .dc-body :global(.dc-note) { font-family: var(--hand); font-size: 1rem; color: var(--blue); margin-bottom: 16px; }
-  .dc-body :global(ul) { list-style: none; display: flex; flex-direction: column; gap: 11px; }
-  .dc-body :global(li) { font-family: var(--type); font-size: 1rem; color: var(--ink); line-height: 1.4; padding-left: 26px; position: relative; }
-  .dc-body :global(li)::before { content: "✦"; position: absolute; left: 0; top: 1px; color: var(--pink); }
-  .dc-body :global(.dc-p) { font-family: var(--type); font-size: .95rem; line-height: 30px; color: var(--ink); margin-bottom: 10px; }
-  .dc-body :global(.dc-sign) { font-family: var(--marker); font-weight: 700; font-size: 1.5rem; color: var(--blue); transform: rotate(-2deg); margin-top: 6px; }
+  /* ── note card — opens with a soft rise ── */
+  .desk-card { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+    padding: 24px; visibility: hidden; opacity: 0; pointer-events: none;
+    background: radial-gradient(120% 120% at 50% 30%, rgba(40,20,60,.5), rgba(12,8,22,.72));
+    backdrop-filter: blur(7px) saturate(1.1);
+    transition: opacity .3s ease, visibility .3s ease; }
+  .desk-card.open { visibility: visible; opacity: 1; pointer-events: auto; }
+  .dc-inner { position: relative; background: var(--card); width: min(460px, 92vw); max-height: 86vh; overflow: auto;
+    padding: 34px 32px 30px; border-radius: 3px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 2px 0 rgba(255,255,255,.4) inset;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--pink) 12%, transparent), transparent 120px),
+      repeating-linear-gradient(var(--card) 0 31px, color-mix(in srgb, var(--blue) 14%, transparent) 31px 32px);
+    transform: translateY(28px) scale(.94) rotate(-1.4deg); opacity: 0;
+    transition: transform .44s cubic-bezier(.2,.85,.25,1.05), opacity .34s ease; }
+  .desk-card.open .dc-inner { transform: translateY(0) scale(1) rotate(-1.2deg); opacity: 1; }
+  .dc-inner::-webkit-scrollbar { width: 8px; } .dc-inner::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--pink) 40%, transparent); border-radius: 8px; }
+  @media (prefers-reduced-motion: reduce) { .dc-inner { transition: opacity .2s; transform: rotate(-1.2deg); } .desk-card.open .dc-inner { transform: rotate(-1.2deg); } }
+  .dc-close { position: sticky; top: 0; float: right; background: var(--ink); color: var(--paper); border: 0; border-radius: 50%;
+    width: 32px; height: 32px; cursor: pointer; font-size: .95rem; line-height: 1; z-index: 3;
+    box-shadow: 2px 3px 0 var(--pink); transition: transform .15s, background .15s; }
+  .dc-close:hover { background: var(--pink); box-shadow: 2px 3px 0 var(--blue); transform: rotate(90deg); }
+
+  /* photo on top of the long version */
+  .dc-body :global(.dc-photo) { float: none; margin: 2px auto 20px; width: 62%; max-width: 220px;
+    background: #fff; padding: 9px 9px 12px; box-shadow: 0 12px 30px rgba(20,10,2,.35); transform: rotate(-3deg); }
+  .dc-body :global(.dc-photo img) { display: block; width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; object-position: 34% 24%; }
+  .dc-body :global(.dc-photo figcaption) { font-family: var(--marker); font-weight: 700; font-size: 1rem; color: #222; text-align: center; margin-top: 6px; }
+
+  .dc-body :global(h3) { font-family: var(--marker); font-weight: 700; font-size: 2.6rem; color: var(--pink);
+    text-shadow: 2px 2px 0 var(--blue); line-height: .95; margin-bottom: 6px; position: relative; display: inline-block; clear: both; }
+  .dc-body :global(h3)::after { content: ''; display: block; height: 7px; margin-top: 3px; border-radius: 6px;
+    background: color-mix(in srgb, var(--pink) 35%, transparent); transform: rotate(-.6deg) scaleX(.96); transform-origin: left; }
+  .dc-body :global(.dc-note) { font-family: var(--hand); font-size: 1rem; color: var(--blue); margin: 6px 0 20px;
+    display: inline-block; background: color-mix(in srgb, var(--blue) 10%, transparent); padding: 4px 12px; border-radius: 14px; transform: rotate(-1deg); }
+  .dc-body :global(ul) { list-style: none; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .dc-body :global(li) { font-family: var(--type); font-size: 1rem; color: var(--ink); line-height: 1.45;
+    padding: 9px 10px 9px 34px; position: relative; border-radius: 8px; transition: background .16s, transform .16s; }
+  .dc-body :global(li) + :global(li) { box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink) 10%, transparent); }
+  .dc-body :global(li)::before { content: "✦"; position: absolute; left: 12px; top: 9px; color: var(--pink); font-size: 1.05rem; }
+  .dc-body :global(li):hover { background: color-mix(in srgb, var(--pink) 9%, transparent); transform: translateX(3px); }
+  .dc-body :global(.dc-p) { font-family: var(--type); font-size: .95rem; line-height: 30px; color: var(--ink); margin-bottom: 12px; }
+  .dc-body :global(.dc-p):first-of-type::first-letter { font-family: var(--marker); font-weight: 700; font-size: 3.1rem; float: left;
+    line-height: .7; margin: 6px 8px 0 0; color: var(--blue); }
+  .dc-body :global(.dc-sign) { font-family: var(--marker); font-weight: 700; font-size: 1.7rem; color: var(--blue);
+    transform: rotate(-2deg); margin-top: 12px; text-align: right; }
 
   /* ── mobile: taller desk, everything repositioned by hand ── */
   @media (max-width: 720px) {
-    .desk { height: 1380px; }
+    .desk { height: 1160px; }
     .d-intro   { left: 4%;  top: 1.5%; width: 62vw; padding: 18px 18px 14px; }
-    .d-polaroid{ right: 4%; top: 13%;  width: 38vw; }
-    .o-flowers { left: 66%; top: 1%;   width: 30vw; }
-    .o-coffee  { left: 8%;  top: 20%;  width: 34vw; --r: -4deg; }
-    .o-cassette{ left: 6%;  top: 33%;  width: 48vw; }
-    .o-smokes  { left: 62%; top: 31%;  width: 33vw; }
-    .d-diary   { left: 7%;  top: 46%;  width: 80vw; }
-    .d-sticky  { left: 52%; top: 62%;  bottom: auto; width: 42vw; }
-    .o-books   { left: 5%;  top: 63%;  width: 45vw; }
-    .o-tickets { left: 42%; top: 76%;  width: 52vw; }
+    .o-flowers { left: 66%; top: 2%;   width: 30vw; }
+    .o-me      { left: 5%;  top: 16%;  width: 40vw; }
+    .o-coffee  { left: 60%; top: 17%;  width: 36vw; --r: -4deg; }
+    .o-cassette{ left: 7%;  top: 37%;  width: 46vw; }
+    .o-smokes  { left: 64%; top: 38%;  width: 33vw; }
+    .d-sticky  { left: 6%;  top: 57%;  bottom: auto; width: 50vw; }
+    .o-books   { left: 56%; top: 55%;  width: 40vw; }
+    .o-tickets { left: 24%; top: 74%;  width: 52vw; }
+    .o-me .d-lbl { display: block; position: static; opacity: 1; transform: none; margin: 8px auto 0; width: max-content; }
     .d-lbl { display: none; }
   }
 </style>

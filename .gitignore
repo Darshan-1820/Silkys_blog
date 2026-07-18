@@ -22,3 +22,6 @@ Thumbs.db
 # test artifacts
 cookies.txt
 tools/shot-*.png
+
+# local visual-check screenshots
+.ref-shots/
