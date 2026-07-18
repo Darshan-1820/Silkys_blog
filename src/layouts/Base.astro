@@ -84,12 +84,26 @@ const robots = noindex || preview ? 'noindex, nofollow' : 'index, follow';
 <header class="mast">
   <div class="wrap mast-inner">
     <a class="brand" href="/" style="text-decoration:none">{site.brand.name} {site.brand.mark}</a>
-    <nav><ul>
-      {site.nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
-    </ul></nav>
-    {site.features.nightMode && <button class="theme-btn" id="themeBtn">☾ night</button>}
+    <div class="mast-right">
+      <nav id="siteNav"><ul>
+        {site.nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+      </ul></nav>
+      {site.features.nightMode && <button class="theme-btn" id="themeBtn">☾ night</button>}
+      <button class="nav-toggle" id="navToggle" aria-label="menu" aria-expanded="false" aria-controls="siteNav"><span></span><span></span><span></span></button>
+    </div>
   </div>
 </header>
+<script is:inline>
+  (() => {
+    const t = document.getElementById('navToggle'), n = document.getElementById('siteNav');
+    if (!t || !n) return;
+    const set = (open) => { n.classList.toggle('open', open); t.classList.toggle('open', open); t.setAttribute('aria-expanded', open ? 'true' : 'false'); };
+    t.addEventListener('click', (e) => { e.stopPropagation(); set(!n.classList.contains('open')); });
+    n.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
+    document.addEventListener('click', (e) => { if (n.classList.contains('open') && !n.contains(e.target) && e.target !== t) set(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+  })();
+</script>
 
 <slot />
 
