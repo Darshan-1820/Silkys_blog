@@ -5,13 +5,18 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "./dist"
 
 # Posts database (Cloudflare D1 — SQLite at the edge).
-# database_id is filled in after we run `wrangler d1 create silkys-blog`.
 [[d1_databases]]
 binding = "DB"
 database_name = "silkys-blog"
-database_id = "PLACEHOLDER_FILL_AFTER_CREATE"
+database_id = "eac6d080-e2b7-4af8-8ce3-ee34415c290d"
+
+# Session store (Astro sessions on Cloudflare KV).
+[[kv_namespaces]]
+binding = "SESSION"
+id = "8a52eac412de497db9d5349163a86b08"
 
 # Uploaded photos (Cloudflare R2 — S3-style object storage, free 10GB).
+# Bucket is created once R2 is enabled on the account: `wrangler r2 bucket create silkys-blog-media`.
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "silkys-blog-media"
